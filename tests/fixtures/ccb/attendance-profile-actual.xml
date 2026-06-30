@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccb_api>
+  <response>
+    <events count="1">
+      <event id="756">
+        <name>Weekly Group</name>
+        <occurrence>2026-06-22 18:30:00</occurrence>
+        <did_not_meet>false</did_not_meet>
+        <topic>Community</topic>
+        <notes>Bring snacks</notes>
+        <prayer_requests>None</prayer_requests>
+        <info>Test</info>
+        <attendees>
+          <attendee id="10">
+            <first_name>Ben</first_name>
+            <last_name>Bolton</last_name>
+          </attendee>
+          <attendee id="25">
+            <first_name>Amy</first_name>
+            <last_name>Jones</last_name>
+          </attendee>
+        </attendees>
+        <head_count>3</head_count>
+      </event>
+    </events>
+  </response>
+</ccb_api>

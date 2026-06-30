@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccb_api>
+  <response>
+    <events count="1">
+      <event id="701">
+        <name>Tuesday Small Group Attendance</name>
+        <description>Weekly group event</description>
+        <start_datetime>2026-05-12 18:00:00</start_datetime>
+        <end_datetime>2026-05-12 20:00:00</end_datetime>
+        <group id="501">Tuesday Small Group</group>
+      </event>
+    </events>
+  </response>
+</ccb_api>

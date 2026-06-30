@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccb_api>
+  <response>
+    <individuals count="2">
+      <individual id="101">
+        <first_name>John</first_name>
+        <last_name>Smith</last_name>
+        <full_name>John Smith</full_name>
+        <email>john@example.com</email>
+        <phones>
+          <phone type="mobile">555-111-2222</phone>
+          <phone type="home">555-333-4444</phone>
+        </phones>
+        <campus>Main Campus</campus>
+        <status>Active</status>
+      </individual>
+      <individual id="102">
+        <first_name>Johnny</first_name>
+        <last_name>Smith</last_name>
+        <full_name>Johnny Smith</full_name>
+        <email>johnny@example.com</email>
+      </individual>
+    </individuals>
+  </response>
+</ccb_api>

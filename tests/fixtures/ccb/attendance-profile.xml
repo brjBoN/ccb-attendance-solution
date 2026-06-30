@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccb_api>
+  <response>
+    <attendance id="901">
+      <event id="701">Tuesday Small Group Attendance</event>
+      <occurrence_date>2026-05-12</occurrence_date>
+      <attendees>
+        <attendee>
+          <individual id="101">
+            <full_name>John Smith</full_name>
+          </individual>
+          <status>present</status>
+        </attendee>
+      </attendees>
+    </attendance>
+  </response>
+</ccb_api>

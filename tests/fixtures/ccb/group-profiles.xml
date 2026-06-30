@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccb_api>
+  <response>
+    <groups count="1">
+      <group id="501">
+        <name>Tuesday Small Group</name>
+        <description>Example group</description>
+        <group_type id="21">Small Group</group_type>
+        <campus id="1">Main Campus</campus>
+        <main_leader id="515">
+          <full_name>Jane Leader</full_name>
+        </main_leader>
+        <department id="32">Discipleship</department>
+        <area id="1">Church</area>
+        <group_capacity>12</group_capacity>
+        <addresses>
+          <address type="meeting">
+            <street_address>100 Main St</street_address>
+            <city>Thomasville</city>
+            <state>GA</state>
+            <zip>31792</zip>
+          </address>
+        </addresses>
+        <meeting_day id="6">Tuesday</meeting_day>
+        <meeting_time id="8">Evening</meeting_time>
+        <childcare_provided>true</childcare_provided>
+        <interaction_type>Members Interact</interaction_type>
+        <membership_type>Invitation or Request Required</membership_type>
+        <notification>true</notification>
+        <listed>true</listed>
+        <public_search_listed>false</public_search_listed>
+        <inactive>false</inactive>
+      </group>
+    </groups>
+  </response>
+</ccb_api>
