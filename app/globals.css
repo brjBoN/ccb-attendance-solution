@@ -4,18 +4,95 @@
 
 :root {
   color-scheme: light;
+  --canvas: #f3f2ec;
+  --ink: #18332d;
+  --muted: #667670;
+  --line: #d9ddd7;
+  --brand: #167365;
+  --brand-dark: #12362f;
+  --accent: #f1b86b;
 }
 
-html,
+* {
+  border-color: var(--line);
+}
+
+html {
+  min-height: 100%;
+  background: var(--canvas);
+  scroll-behavior: smooth;
+}
+
 body {
   min-height: 100%;
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(255, 255, 255, 0.9), transparent 26rem),
+    var(--canvas);
+  color: var(--ink);
+  font-family:
+    "Segoe UI Variable Text",
+    "Aptos",
+    "Segoe UI",
+    sans-serif;
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
 }
 
-body {
-  background: #f8fafc;
-  color: #0f172a;
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 a {
   color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+summary,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(22, 115, 101, 0.24);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #cbe9df;
+  color: #12362f;
+}
+
+@layer components {
+  .form-input {
+    @apply w-full rounded-xl border border-[#ccd5cf] bg-white px-3 py-2.5 text-sm text-[#203b34] outline-none transition placeholder:text-[#98a49f] focus:border-[#3a8e80] focus:ring-4 focus:ring-[#bfe4da]/40;
+  }
+
+  .surface-card {
+    @apply rounded-[28px] border border-[#d9ddd7] bg-white shadow-[0_20px_60px_rgba(24,45,39,0.07)];
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

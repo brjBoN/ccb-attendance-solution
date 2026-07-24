@@ -7,7 +7,7 @@ import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
 import { getServerEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { buildCheckinUrl, generateCheckinToken, hashCheckinToken } from "@/lib/tokens";
+import { buildClassCheckinUrl } from "@/lib/tokens";
 
 const createSchema = z.object({
   mappingId: z.string().uuid(),
@@ -20,7 +20,6 @@ const createSchema = z.object({
   occurrenceLocalEnd: z.string().min(1),
   checkinOpensAt: z.string().datetime().optional().nullable(),
   checkinClosesAt: z.string().datetime().optional().nullable(),
-  tokenExpiresAt: z.string().datetime().optional().nullable(),
   status: z.enum(["draft", "active"]).default("active"),
   createEventIfMissing: z.boolean().default(true),
   eventDescription: z.string().max(4000).optional().or(z.literal("")),
@@ -107,8 +106,18 @@ export async function POST(request: NextRequest) {
 
   if (!canManageSessionForGroup(admin, mapping)) {
     return NextResponse.json(
-      { error: "Only this group's main leader or a full administrator can create its QR sessions." },
+      { error: "Only this class's main leader or a full administrator can open its meetings." },
       { status: 403 }
+    );
+  }
+
+  if (!mapping.public_checkin_slug) {
+    return NextResponse.json(
+      {
+        error:
+          "This class does not have a permanent check-in link yet. Run Supabase migration 0008, then try again."
+      },
+      { status: 409 }
     );
   }
 
@@ -240,33 +249,37 @@ export async function POST(request: NextRequest) {
       throw new Error(sessionError?.message ?? "Could not create session.");
     }
 
-    const token = generateCheckinToken();
-    const tokenHash = hashCheckinToken(token);
-    const { data: tokenRow, error: tokenError } = await supabase
-      .from("checkin_tokens")
-      .insert({
-        session_id: session.id,
-        token_hash: tokenHash,
-        label: "Initial QR token",
-        expires_at: input.tokenExpiresAt || null
-      })
-      .select("id,expires_at,created_at")
-      .single();
+    if (input.status === "active") {
+      const { error: closeError } = await supabase
+        .from("checkin_sessions")
+        .update({ status: "closed" })
+        .eq("ccb_group_id", mapping.ccb_group_id)
+        .eq("status", "active")
+        .neq("id", session.id);
 
-    if (tokenError) throw new Error(tokenError.message);
+      if (closeError) throw new Error(closeError.message);
+    }
 
     const env = getServerEnv();
-    const checkinUrl = buildCheckinUrl(env.APP_BASE_URL, token);
-    const qrDataUrl = await QRCode.toDataURL(checkinUrl, { margin: 2, width: 768 });
+    const checkinUrl = buildClassCheckinUrl(
+      env.APP_BASE_URL,
+      mapping.public_checkin_slug
+    );
+    const qrDataUrl = await QRCode.toDataURL(checkinUrl, {
+      margin: 2,
+      width: 768,
+      color: { dark: "#12362fff", light: "#ffffffff" }
+    });
 
     return NextResponse.json({
       session,
       createdEvent,
-      token: {
-        id: tokenRow.id,
+      classLink: {
+        mappingId: mapping.id,
+        className: mapping.group_name,
+        publicSlug: mapping.public_checkin_slug,
         checkinUrl,
-        qrDataUrl,
-        expiresAt: tokenRow.expires_at
+        qrDataUrl
       }
     });
   } catch (error) {

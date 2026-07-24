@@ -47,57 +47,62 @@ export function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-950">
-          {mode === "signin" ? "Admin sign in" : "Create admin auth user"}
+    <div className="w-full rounded-[28px] border border-[#d9ddd7] bg-white p-6 shadow-[0_24px_70px_rgba(24,45,39,0.1)] sm:p-8">
+      <div className="mb-7">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#167365]">
+          Leader access
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-[#18332d]">
+          {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Supabase Auth handles sign-in. App admin access is controlled by the
-          <code className="mx-1 rounded bg-slate-100 px-1 py-0.5">admin_users</code>
-          table.
+        <p className="mt-2 text-sm leading-6 text-[#6d7b76]">
+          {mode === "signin"
+            ? "Sign in to open meetings and manage class attendance."
+            : "Create a sign-in, then ask an administrator to grant your class access."}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Email</span>
+          <span className="text-sm font-semibold text-[#38534c]">Email</span>
           <input
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none ring-brand-500 focus:ring-2"
+            autoComplete="email"
+            className="form-input mt-1.5 py-3"
           />
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Password</span>
+          <span className="text-sm font-semibold text-[#38534c]">Password</span>
           <input
             name="password"
             type="password"
             required
             minLength={6}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none ring-brand-500 focus:ring-2"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            className="form-input mt-1.5 py-3"
           />
         </label>
 
         <button
           disabled={isPending}
-          className="w-full rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-[#167365] px-4 py-3 font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.18)] transition hover:bg-[#0f6156] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
 
       {message ? (
-        <p className="mt-4 rounded-xl bg-slate-100 p-3 text-sm leading-6 text-slate-700">
+        <p className="mt-4 rounded-xl bg-[#eef5f1] p-3 text-sm leading-6 text-[#456159]">
           {message}
         </p>
       ) : null}
 
-      <div className="mt-5 flex flex-col gap-2 text-sm">
+      <div className="mt-6 flex flex-col gap-3 border-t border-[#e5e8e3] pt-5 text-sm">
         {mode === "signin" ? (
-          <Link href="/forgot-password" className="font-medium text-brand-700 hover:underline">
+          <Link href="/forgot-password" className="font-semibold text-[#167365] hover:underline">
             Forgot password?
           </Link>
         ) : null}
@@ -105,7 +110,7 @@ export function AuthForm() {
         <button
           type="button"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="text-left font-medium text-brand-700 hover:underline"
+          className="text-left font-semibold text-[#167365] hover:underline"
         >
           {mode === "signin"
             ? "Need to create the first Auth user?"

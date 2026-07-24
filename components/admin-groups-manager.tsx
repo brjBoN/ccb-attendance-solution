@@ -231,7 +231,7 @@ ${expected}`
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-950">Search CCB groups</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Search by group name, type, campus, description, or leader. Save the CCB Attendance Grouping default and group auto-add behavior here.
+          Search by class name, type, campus, description, or leader. Save the CCB Attendance Grouping default and member auto-add behavior here.
         </p>
 
         <form onSubmit={searchGroups} className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -296,8 +296,8 @@ ${expected}`
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Enabled group mappings</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Main-leader linkage controls who may create QR sessions for each group.</p>
+        <h2 className="text-lg font-semibold text-slate-950">Enabled classes</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Each enabled class has one permanent QR code. Main-leader linkage controls who may open its meetings.</p>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full text-left text-sm">

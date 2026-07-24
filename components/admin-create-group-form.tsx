@@ -357,7 +357,7 @@ export function AdminCreateGroupForm() {
               {result.ccbGroupId ? <p>CCB Group ID: {result.ccbGroupId}</p> : null}
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link href="/admin/sessions" className="inline-flex font-semibold text-emerald-800 underline">
-                  Create a CCB event and QR session for this group
+                  Open this class and its permanent QR code
                 </Link>
                 {result.checklistUrl ? (
                   <Link href={result.checklistUrl} className="inline-flex font-semibold text-emerald-800 underline">

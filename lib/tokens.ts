@@ -15,3 +15,7 @@ export function buildCheckinUrl(baseUrl: string, token: string) {
   const cleanBase = baseUrl.replace(/\/+$/, "");
   return `${cleanBase}/checkin/g/${encodeURIComponent(token)}`;
 }
+
+export function buildClassCheckinUrl(baseUrl: string, publicSlug: string) {
+  return buildCheckinUrl(baseUrl, publicSlug);
+}

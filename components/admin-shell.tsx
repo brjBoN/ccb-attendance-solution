@@ -1,12 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  CalendarCheck,
   ClipboardCheck,
-  Home,
-  QrCode,
+  LayoutDashboard,
+  ScanLine,
+  ScrollText,
   Settings,
   ShieldCheck,
-  UserPlus,
+  Sparkles,
+  UserRoundPlus,
   UsersRound
 } from "lucide-react";
 import type { CurrentAdmin } from "@/lib/auth/admin";
@@ -14,55 +18,179 @@ import { isFullAdminRole } from "@/lib/auth/permissions";
 import { SignOutButton } from "@/components/sign-out-button";
 
 const nav = [
-  { href: "/admin", label: "Dashboard", icon: Home, fullAdminOnly: false },
-  { href: "/admin/groups", label: "Groups", icon: UsersRound, fullAdminOnly: false },
-  { href: "/admin/sessions", label: "QR Sessions", icon: QrCode, fullAdminOnly: false },
-  { href: "/admin/guests", label: "Pending Guests", icon: UserPlus, fullAdminOnly: true },
-  { href: "/admin/checklist", label: "CCB Checklist", icon: ClipboardCheck, fullAdminOnly: true },
-  { href: "/admin/permissions", label: "Permissions", icon: ShieldCheck, fullAdminOnly: true },
-  { href: "/admin/logs", label: "Logs", icon: CalendarCheck, fullAdminOnly: false },
-  { href: "/admin/settings", label: "Settings", icon: Settings, fullAdminOnly: false }
+  {
+    href: "/admin",
+    label: "Overview",
+    icon: LayoutDashboard,
+    fullAdminOnly: false
+  },
+  {
+    href: "/admin/groups",
+    label: "Classes",
+    icon: UsersRound,
+    fullAdminOnly: false
+  },
+  {
+    href: "/admin/sessions",
+    label: "Class check-in",
+    icon: ScanLine,
+    fullAdminOnly: false
+  },
+  {
+    href: "/admin/guests",
+    label: "Guest review",
+    icon: UserRoundPlus,
+    fullAdminOnly: true
+  },
+  {
+    href: "/admin/checklist",
+    label: "CCB checklist",
+    icon: ClipboardCheck,
+    fullAdminOnly: true
+  },
+  {
+    href: "/admin/permissions",
+    label: "Permissions",
+    icon: ShieldCheck,
+    fullAdminOnly: true
+  },
+  {
+    href: "/admin/logs",
+    label: "Activity",
+    icon: ScrollText,
+    fullAdminOnly: false
+  },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    icon: Settings,
+    fullAdminOnly: false
+  }
 ];
 
-export function AdminShell({ admin, children }: { admin: CurrentAdmin; children: React.ReactNode }) {
-  const visibleNav = nav.filter((item) => !item.fullAdminOnly || isFullAdminRole(admin.role));
+export function AdminShell({
+  admin,
+  children
+}: {
+  admin: CurrentAdmin;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const visibleNav = nav.filter(
+    (item) => !item.fullAdminOnly || isFullAdminRole(admin.role)
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white p-4 lg:block">
-        <Link href="/admin" className="block rounded-2xl bg-brand-50 p-4">
-          <p className="text-sm font-medium text-brand-700">CCB QR</p>
-          <p className="mt-1 text-lg font-bold text-brand-900">Attendance</p>
+    <div className="min-h-screen bg-[#f3f2ec]">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[276px] flex-col bg-[#12362f] p-4 text-white lg:flex">
+        <Link
+          href="/admin"
+          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4"
+        >
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f1b86b] text-[#24362d]">
+            <ScanLine className="h-6 w-6" />
+          </span>
+          <span>
+            <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-[#9fd8c8]">
+              CCB
+            </span>
+            <span className="mt-0.5 block text-base font-semibold tracking-[-0.01em]">
+              Class Check-In
+            </span>
+          </span>
         </Link>
 
-        <nav className="mt-6 space-y-1">
-          {visibleNav.map((item) => (
-            <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950">
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
+        <nav className="mt-6 flex-1 space-y-1">
+          {visibleNav.map((item) => {
+            const active =
+              item.href === "/admin"
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition ${
+                  active
+                    ? "bg-[#dff3ec] text-[#153b33] shadow-sm"
+                    : "text-white/68 hover:bg-white/[0.07] hover:text-white"
+                }`}
+              >
+                <item.icon className="h-[18px] w-[18px]" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#9fd8c8]">
+            <Sparkles className="h-3.5 w-3.5" />
+            Reusable QR
+          </div>
+          <p className="mt-2 text-sm leading-5 text-white/65">
+            Every class now keeps one link for every meeting.
+          </p>
+        </div>
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-6 py-4 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Signed in as</p>
-              <p className="font-semibold text-slate-950">
+      <div className="lg:pl-[276px]">
+        <header className="sticky top-0 z-20 border-b border-[#dfe2dc] bg-[#f8f7f2]/90 backdrop-blur-xl">
+          <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2.5 lg:hidden"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#12362f] text-[#f1b86b]">
+                <ScanLine className="h-5 w-5" />
+              </span>
+              <span className="text-sm font-bold text-[#18332d]">
+                Class Check-In
+              </span>
+            </Link>
+
+            <div className="hidden lg:block">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7a8984]">
+                Attendance workspace
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#29473f]">
                 {admin.name || admin.email}
-                <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <span className="ml-2 rounded-full bg-[#e3ebe7] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#4e655e]">
                   {admin.role.replace("_", " ")}
                 </span>
               </p>
-              {admin.ccbIndividualId ? <p className="text-xs text-slate-500">CCB individual ID {admin.ccbIndividualId}</p> : null}
             </div>
+
             <SignOutButton />
           </div>
+
+          <nav className="flex gap-1 overflow-x-auto border-t border-[#e7e8e2] px-3 py-2 lg:hidden">
+            {visibleNav.map((item) => {
+              const active =
+                item.href === "/admin"
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold ${
+                    active
+                      ? "bg-[#dff3ec] text-[#145f53]"
+                      : "text-[#667670]"
+                  }`}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </header>
 
-        <main className="px-6 py-8">{children}</main>
+        <main className="px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10">
+          {children}
+        </main>
       </div>
     </div>
   );

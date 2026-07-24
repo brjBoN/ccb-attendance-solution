@@ -80,9 +80,9 @@ export function AdminPermissionsManager() {
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-950">Role definitions</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <Role label="Owner / Admin" description="See every sidebar page and manage all groups, QR sessions, guests, checklist items, and permissions." />
-          <Role label="Group Manager" description="Can create and edit groups. Cannot view Pending Guests, Permissions, or the CCB Checklist. QR sessions are limited to groups they personally lead." />
-          <Role label="Group Leader" description="Can create and manage QR sessions only for groups where their CCB individual ID matches the group's main leader ID." />
+          <Role label="Owner / Admin" description="See every sidebar page and manage all classes, meetings, guests, checklist items, and permissions." />
+          <Role label="Group Manager" description="Can create and edit groups. Cannot view Guest Review, Permissions, or the CCB Checklist. Meeting access is limited to classes they personally lead." />
+          <Role label="Group Leader" description="Can open and manage meetings only for classes where their CCB individual ID matches the group's main leader ID." />
           <Role label="No Access" description="The Supabase Auth user remains, but no app authorization row exists." />
         </div>
       </div>

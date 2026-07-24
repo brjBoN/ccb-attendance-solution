@@ -8,7 +8,7 @@ Use a dedicated API user and keep its username/password only in local/Vercel env
 
 ## 2. Supabase
 
-Run migrations 0001 through 0004 in order.
+Run migrations 0001 through 0008 in order.
 
 Confirm:
 
@@ -33,7 +33,7 @@ Test:
 1. Admin login and password reset
 2. Group search, creation, and edit
 3. Automatic event creation
-4. QR generation and token validation
+4. Permanent class QR generation and current-meeting resolution
 5. Existing-person check-in
 6. Duplicate check-in prevention
 7. Attendance verification in CCB
@@ -50,13 +50,13 @@ Test:
 5. Deploy.
 6. Add the production domain to Supabase Auth redirect URLs.
 7. Send a production password-reset email and complete the flow.
-8. Scan a production QR code from a phone.
+8. Open a meeting, then scan its permanent class QR code from a phone.
 
 ## 5. Operational safeguards
 
 - CCB deletion/removal/inactivation services are blocked centrally.
 - Local deletion requires explicit confirmation.
-- QR tokens are random and stored as hashes.
+- Permanent class links use opaque UUIDs; legacy meeting tokens remain random and hashed.
 - Public endpoints are rate-limited.
 - Attendance sync is read-merge-write with read-back verification.
 - Guest creation is admin-reviewed and duplicate-checked.

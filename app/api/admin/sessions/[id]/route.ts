@@ -12,7 +12,7 @@ const updateSchema = z.object({
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { response } = await requireSessionManagerForApi(id);
+  const { session, response } = await requireSessionManagerForApi(id);
   if (response) return response;
 
   const parsed = updateSchema.safeParse(await request.json().catch(() => null));
@@ -27,6 +27,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (parsed.data.checkinClosesAt !== undefined) update.checkin_closes_at = parsed.data.checkinClosesAt || null;
 
   const supabase = createSupabaseAdminClient();
+
+  if (parsed.data.status === "active" && session) {
+    const { error: closeError } = await supabase
+      .from("checkin_sessions")
+      .update({ status: "closed" })
+      .eq("ccb_group_id", session.ccb_group_id)
+      .eq("status", "active")
+      .neq("id", id);
+
+    if (closeError) {
+      return NextResponse.json({ error: closeError.message }, { status: 500 });
+    }
+  }
+
   const { data, error } = await supabase.from("checkin_sessions").update(update).eq("id", id).select("*").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ session: data });

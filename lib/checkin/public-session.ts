@@ -15,12 +15,14 @@ export type PublicCheckinSessionResult =
         checkinOpensAt: string | null;
         checkinClosesAt: string | null;
         status: string;
+        reusableClassLink: boolean;
       };
     }
   | {
       ok: false;
-      reason: "not_found" | "revoked" | "expired" | "not_active" | "not_open_yet" | "closed";
+      reason: "not_found" | "revoked" | "expired" | "not_active" | "not_open_yet" | "closed" | "no_meeting";
       message: string;
+      groupName?: string;
     };
 
 export async function getPublicCheckinSessionByToken(
@@ -41,7 +43,8 @@ export async function getPublicCheckinSessionByToken(
       occurrenceEndAt: result.session.occurrenceEndAt,
       checkinOpensAt: result.session.checkinOpensAt,
       checkinClosesAt: result.session.checkinClosesAt,
-      status: result.session.status
+      status: result.session.status,
+      reusableClassLink: result.session.reusableClassLink
     }
   };
 }

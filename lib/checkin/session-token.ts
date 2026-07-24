@@ -1,32 +1,11 @@
 import "server-only";
 
+import { getInternalCheckinSessionByClassSlug } from "@/lib/checkin/class-link";
+import type { InternalCheckinSessionResult } from "@/lib/checkin/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hashCheckinToken } from "@/lib/tokens";
 
-export type InternalCheckinSessionResult =
-  | {
-      ok: true;
-      session: {
-        id: string;
-        title: string;
-        ccbGroupId: string;
-        ccbEventId: string;
-        occurrenceDate: string;
-        occurrenceStartAt: string | null;
-        occurrenceEndAt: string | null;
-        checkinOpensAt: string | null;
-        checkinClosesAt: string | null;
-        status: string;
-        groupName: string | null;
-        eventGroupingId: string | null;
-        autoAddCheckinsToGroup: boolean;
-      };
-    }
-  | {
-      ok: false;
-      reason: "not_found" | "revoked" | "expired" | "not_active" | "not_open_yet" | "closed";
-      message: string;
-    };
+export type { InternalCheckinSessionResult } from "@/lib/checkin/types";
 
 export async function getInternalCheckinSessionByToken(
   token: string
@@ -61,11 +40,7 @@ export async function getInternalCheckinSessionByToken(
     .maybeSingle();
 
   if (tokenError || !tokenRow) {
-    return {
-      ok: false,
-      reason: "not_found",
-      message: "This QR code was not found. Please ask your group leader for a current check-in link."
-    };
+    return getInternalCheckinSessionByClassSlug(token);
   }
 
   if (tokenRow.revoked_at) {
@@ -153,7 +128,8 @@ export async function getInternalCheckinSessionByToken(
       autoAddCheckinsToGroup:
         typeof autoAddFromOptions === "boolean"
           ? autoAddFromOptions
-          : groupMapping?.auto_add_checkins_to_group ?? true
+          : groupMapping?.auto_add_checkins_to_group ?? true,
+      reusableClassLink: false
     }
   };
 }

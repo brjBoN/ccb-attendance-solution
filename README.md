@@ -1,6 +1,6 @@
-# CCB QR Small Group Attendance — v1.0
+# CCB Class Check-In — v1.2
 
-A Next.js web app for managing CCB small groups, generating secure QR check-in sessions, finding existing CCB people, creating reviewed guest profiles, and synchronizing attendance back to Pushpay/CCB.
+A Next.js web app for managing CCB classes, using one permanent QR check-in link per class, finding existing CCB people, creating reviewed guest profiles, and synchronizing attendance back to Pushpay/CCB.
 
 ## Current behavior
 
@@ -28,19 +28,19 @@ CCB delete/remove/inactivate/deactivate services are blocked in `CcbClient`. Loc
 - Enable/disable local QR mappings
 - Deletion of a local mapping requires confirmation and does not delete the CCB group
 
-### QR sessions and events
+### Class links, meetings, and events
 
-- Create a QR session for a mapped group
+- Assign one stable, opaque QR code/link to each mapped class
+- Open a dated meeting without changing the class QR code
+- Automatically route the class link to the meeting currently open for check-in
 - Enter an existing CCB event ID, or leave it blank to create the CCB event automatically
 - Create recurring CCB events
 - Set occurrence, meeting, and check-in windows
-- Generate secure random QR tokens
-- Store token hashes rather than raw tokens
-- Revoke/regenerate QR tokens
+- Keep legacy meeting-token links readable during the transition
 
 ### Existing-person check-in
 
-- Validate QR token/session/window
+- Validate the reusable class link and current meeting window
 - Search CCB by name and optional phone/email
 - Return privacy-masked match cards
 - Prevent duplicate local check-ins
@@ -241,3 +241,21 @@ supabase/migrations/0007_app_created_group_deletion.sql
 Full admins can now delete/inactivate only CCB groups created through this app. Existing CCB groups that were only mapped into the app cannot be deleted or inactivated through this workflow.
 
 See `APP_CREATED_GROUP_DELETION.md`.
+
+## v1.2.0 — Permanent class QR links and visual redesign
+
+Run the new migration:
+
+```txt
+supabase/migrations/0008_persistent_class_checkin_links.sql
+```
+
+Each enabled class now has one reusable QR code. Leaders open a dated meeting,
+and that permanent class link resolves to the meeting currently accepting
+attendance. Creating or reopening a meeting no longer creates a new token or
+changes the public link.
+
+The landing page, sign-in, admin navigation, dashboard, class check-in workspace,
+and public mobile check-in page share a new responsive visual system.
+
+See `PERSISTENT_CLASS_QR_AND_VISUAL_REDESIGN.md`.

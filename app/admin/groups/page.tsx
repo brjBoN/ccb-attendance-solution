@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus, UsersRound } from "lucide-react";
 import { AdminGroupsManager } from "@/components/admin-groups-manager";
 import { requireAdmin } from "@/lib/auth/admin";
-import { canCreateGroupsRole, isFullAdminRole } from "@/lib/auth/permissions";
+import {
+  canCreateGroupsRole,
+  isFullAdminRole
+} from "@/lib/auth/permissions";
+
+export const metadata: Metadata = {
+  title: "Classes"
+};
 
 export default async function AdminGroupsPage() {
   const admin = await requireAdmin();
@@ -9,21 +18,35 @@ export default async function AdminGroupsPage() {
   const canDeleteAppCreatedGroups = isFullAdminRole(admin.role);
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="mb-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-950">Groups</h1>
-          {canManageGroups ? (
-            <Link href="/admin/groups/new" className="inline-flex w-fit rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
-              Create CCB Group
-            </Link>
-          ) : null}
+    <div className="mx-auto max-w-[1240px]">
+      <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#167365]">
+            <UsersRound className="h-4 w-4" />
+            CCB groups
+          </div>
+          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-[#18332d] sm:text-5xl">
+            Classes
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[#667670]">
+            Connect CCB groups to class check-in. Each enabled class receives
+            one permanent QR code for all of its meetings.
+          </p>
         </div>
-        <p className="mt-2 max-w-3xl text-slate-600">
-          Search CCB groups and manage QR mappings. Group creation/editing requires Group Manager or Admin access.
-        </p>
+        {canManageGroups ? (
+          <Link
+            href="/admin/groups/new"
+            className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#167365] px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.18)] transition hover:bg-[#0f6156]"
+          >
+            <Plus className="h-4 w-4" />
+            Create CCB group
+          </Link>
+        ) : null}
       </div>
-      <AdminGroupsManager canManageGroups={canManageGroups} canDeleteAppCreatedGroups={canDeleteAppCreatedGroups} />
+      <AdminGroupsManager
+        canManageGroups={canManageGroups}
+        canDeleteAppCreatedGroups={canDeleteAppCreatedGroups}
+      />
     </div>
   );
 }

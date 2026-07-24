@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0 — Permanent class QR and visual redesign
+
+- Added one stable public check-in slug to every mapped class.
+- Changed public-link resolution so a class QR opens the current meeting.
+- Stopped creating or rotating QR tokens for individual meetings.
+- Kept existing hashed meeting tokens readable for transition compatibility.
+- Ensured opening or reopening a meeting closes other active meetings for the class.
+- Added a permanent class QR panel with copy, download, and preview actions.
+- Redesigned the landing, sign-in, navigation, dashboard, class workspace, and public check-in screens.
+- Added a branded social-preview image and responsive metadata.
+- Added migration `0008_persistent_class_checkin_links.sql`.
+
 ## 1.0.0-write-enabled
 
 - Removed all `CCB_ENABLE_*` write feature flags.
