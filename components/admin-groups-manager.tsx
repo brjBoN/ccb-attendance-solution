@@ -13,6 +13,7 @@ type CcbGroupResult = {
   campus: string | null;
   leaderName: string | null;
   mainLeaderId: string | null;
+  matchReason: "Class name" | "Leader" | "Class type" | "Campus" | "Description";
 };
 
 type GroupMapping = {
@@ -97,7 +98,7 @@ export function AdminGroupsManager({
   function searchGroups(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      setMessage("Loading CCB groups. This can take a little while on large accounts...");
+      setMessage("Searching classes...");
       const response = await fetch(`/api/admin/ccb/groups/search?q=${encodeURIComponent(query)}&limit=75`);
       const data = await response.json();
       if (!response.ok) {
@@ -231,13 +232,13 @@ ${expected}`
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-950">Search CCB groups</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Search by class name, type, campus, description, or leader. Save the CCB Attendance Grouping default and member auto-add behavior here.
+          Search by class name. Leader, type, campus, and description are used as secondary matches, and class-name matches always appear first.
         </p>
 
         <form onSubmit={searchGroups} className="mt-5 flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search groups, e.g. small group, Tuesday, leader name..." className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 outline-none ring-brand-500 focus:ring-2" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search class names, e.g. Discover..." className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 outline-none ring-brand-500 focus:ring-2" />
           </div>
           <button disabled={isPending} className="rounded-xl bg-brand-600 px-5 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-60">Search</button>
         </form>
@@ -253,6 +254,9 @@ ${expected}`
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <p className="font-semibold text-slate-950">{group.name ?? `CCB Group ${group.id}`}</p>
+                    <p className="mt-1 inline-flex rounded-full bg-brand-50 px-2 py-1 text-[11px] font-semibold text-brand-700">
+                      Matched on {group.matchReason.toLowerCase()}
+                    </p>
                     <p className="mt-1 text-xs text-slate-500">CCB group ID: {group.id}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {[group.groupType, group.campus, group.leaderName].filter(Boolean).join(" • ") || "No extra metadata returned."}

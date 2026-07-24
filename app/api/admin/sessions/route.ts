@@ -1,41 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import QRCode from "qrcode";
 import { z } from "zod";
+import {
+  ccbOccurrenceForDate,
+  DEFAULT_CLASS_TIME_ZONE,
+  ensureClassAttendanceEvent
+} from "@/lib/attendance/class-event";
 import { requireAdminForApi } from "@/lib/auth/api";
 import { canManageSessionForGroup, isFullAdminRole } from "@/lib/auth/permissions";
-import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
-import { getServerEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { buildClassCheckinUrl } from "@/lib/tokens";
+import { zonedLocalDateTimeToIso } from "@/lib/time/zoned";
 
-const createSchema = z.object({
-  mappingId: z.string().uuid(),
-  title: z.string().trim().min(1),
-  ccbEventId: z.string().trim().optional().or(z.literal("")),
-  occurrenceDate: z.string().min(1),
-  occurrenceStartAt: z.string().datetime().optional().nullable(),
-  occurrenceEndAt: z.string().datetime().optional().nullable(),
-  occurrenceLocalStart: z.string().min(1),
-  occurrenceLocalEnd: z.string().min(1),
-  checkinOpensAt: z.string().datetime().optional().nullable(),
-  checkinClosesAt: z.string().datetime().optional().nullable(),
-  status: z.enum(["draft", "active"]).default("active"),
-  createEventIfMissing: z.boolean().default(true),
-  eventDescription: z.string().max(4000).optional().or(z.literal("")),
-  eventGroupingId: z.string().trim().optional().or(z.literal("")),
-  autoAddCheckinsToGroup: z.boolean().default(true),
-  recurrenceType: z.enum(["none", "daily", "weekly", "monthly"]).default("none"),
-  recurrenceFrequency: z.coerce.number().int().positive().max(52).default(1),
-  recurrenceWeekNumber: z.enum(["", "first", "second", "third", "fourth", "last"]).default(""),
-  recurrenceDayOfWeek: z.enum(["", "mon", "tue", "wed", "thu", "fri", "sat", "sun"]).default(""),
-  recurrenceDayOfMonth: z.coerce.number().int().min(1).max(31).optional().nullable(),
-  recurrenceEndDate: z.string().optional().or(z.literal("")),
-  numberOfOccurrences: z.coerce.number().int().positive().max(520).optional().nullable(),
-  eventListed: z.boolean().default(false),
-  attendanceReminder: z.boolean().default(true),
-  eventNotification: z.boolean().default(false)
-});
+const createSchema = z
+  .object({
+    mappingId: z.string().uuid(),
+    title: z.string().trim().max(160).optional().or(z.literal("")),
+    meetingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    note: z.string().trim().max(500).optional().or(z.literal(""))
+  })
+  .refine((input) => input.endTime > input.startTime, {
+    message: "The ending time must be after the starting time."
+  });
 
 export async function GET() {
   const { admin, response } = await requireAdminForApi();
@@ -44,17 +31,9 @@ export async function GET() {
   const supabase = createSupabaseAdminClient();
   let query = supabase
     .from("checkin_sessions")
-    .select(`
-      *,
-      checkin_tokens (
-        id,
-        label,
-        expires_at,
-        revoked_at,
-        created_at
-      )
-    `)
-    .order("created_at", { ascending: false });
+    .select("*")
+    .order("occurrence_start_at", { ascending: false })
+    .limit(250);
 
   if (!isFullAdminRole(admin.role)) {
     if (!admin.ccbIndividualId) return NextResponse.json({ results: [] });
@@ -64,7 +43,9 @@ export async function GET() {
       .select("ccb_group_id")
       .eq("ccb_main_leader_id", admin.ccbIndividualId);
 
-    if (mappingError) return NextResponse.json({ error: mappingError.message }, { status: 500 });
+    if (mappingError) {
+      return NextResponse.json({ error: mappingError.message }, { status: 500 });
+    }
     const groupIds = (mappings ?? []).map((mapping) => mapping.ccb_group_id);
     if (!groupIds.length) return NextResponse.json({ results: [] });
     query = query.in("ccb_group_id", groupIds);
@@ -77,14 +58,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const { admin, response } = await requireAdminForApi();
-  if (response) return response;
+  if (response || !admin) return response;
 
-  const body = await request.json().catch(() => null);
-  const parsed = createSchema.safeParse(body);
-
+  const parsed = createSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid session payload.", details: parsed.error.flatten() },
+      { error: "Enter a valid date, starting time, and ending time.", details: parsed.error.flatten() },
       { status: 400 }
     );
   }
@@ -95,273 +74,104 @@ export async function POST(request: NextRequest) {
     .from("ccb_group_mappings")
     .select("*")
     .eq("id", input.mappingId)
-    .single();
+    .is("deleted_at", null)
+    .maybeSingle();
 
   if (mappingError || !mapping) {
     return NextResponse.json(
-      { error: mappingError?.message ?? "Group mapping not found." },
+      { error: mappingError?.message ?? "Class mapping not found." },
       { status: 404 }
     );
   }
 
   if (!canManageSessionForGroup(admin, mapping)) {
     return NextResponse.json(
-      { error: "Only this class's main leader or a full administrator can open its meetings." },
+      { error: "Only this class's main leader or a full administrator can add a special meeting." },
       { status: 403 }
     );
   }
 
-  if (!mapping.public_checkin_slug) {
-    return NextResponse.json(
-      {
-        error:
-          "This class does not have a permanent check-in link yet. Run Supabase migration 0008, then try again."
-      },
-      { status: 409 }
-    );
-  }
-
-  let resolvedEventId = input.ccbEventId || mapping.ccb_event_id || "";
-  const resolvedEventGroupingId = input.eventGroupingId || mapping.ccb_event_grouping_id || "";
-  let createdEvent: { id: string; name: string | null } | null = null;
-  const ccbOccurrence = toCcbDateTime(input.occurrenceLocalStart);
-
   try {
-    if (!resolvedEventId) {
-      if (!input.createEventIfMissing) {
-        return NextResponse.json(
-          { error: "No CCB event ID is mapped. Enable automatic event creation or enter an event ID." },
-          { status: 400 }
-        );
-      }
-
-      if (!resolvedEventGroupingId) {
-        return NextResponse.json(
-          {
-            error:
-              "Select a CCB Attendance Grouping before automatically creating an event. Without it, CCB creates the event with Attendance Grouping = None and it will not behave correctly for check-in/attendance reporting."
-          },
-          { status: 400 }
-        );
-      }
-
-      const client = createCcbClient();
-      const recurrenceDefaults = getRecurrenceDefaults({
-        recurrenceType: input.recurrenceType,
-        occurrenceLocalStart: input.occurrenceLocalStart,
-        recurrenceWeekNumber: input.recurrenceWeekNumber || undefined,
-        recurrenceDayOfWeek: input.recurrenceDayOfWeek || undefined,
-        recurrenceDayOfMonth: input.recurrenceDayOfMonth ?? undefined
-      });
-
-      const eventResult = await client.createEvent({
-        groupId: mapping.ccb_group_id,
-        startDate: toCcbDateTime(input.occurrenceLocalStart),
-        endDate: toCcbDateTime(input.occurrenceLocalEnd),
-        name: input.title,
-        description: input.eventDescription || undefined,
-        eventGroupingId: resolvedEventGroupingId,
-        recurrenceType: input.recurrenceType === "none" ? undefined : input.recurrenceType,
-        recurrenceFrequency: input.recurrenceType === "none" ? undefined : input.recurrenceFrequency,
-        recurrenceWeekNumber: recurrenceDefaults.recurrenceWeekNumber,
-        recurrenceDayOfWeek: recurrenceDefaults.recurrenceDayOfWeek,
-        recurrenceDayOfMonth: recurrenceDefaults.recurrenceDayOfMonth,
-        recurrenceEndDate: input.recurrenceEndDate || undefined,
-        numberOfOccurrences: input.numberOfOccurrences ?? undefined,
-        listed: input.eventListed,
-        attendanceReminder: input.attendanceReminder,
-        notification: input.eventNotification,
-        usesResources: false,
-        useCampusAddress: false
-      });
-
-      resolvedEventId = readId(eventResult);
-      if (!resolvedEventId) {
-        throw new Error("CCB created the event, but the event ID could not be read from the response.");
-      }
-
-      createdEvent = {
-        id: resolvedEventId,
-        name: readName(eventResult) ?? input.title
-      };
-
-      const { error: mappingUpdateError } = await supabase
-        .from("ccb_group_mappings")
-        .update({
-          ccb_event_id: resolvedEventId,
-          ccb_event_grouping_id: resolvedEventGroupingId || null,
-          auto_add_checkins_to_group: input.autoAddCheckinsToGroup
-        })
-        .eq("id", mapping.id);
-
-      if (mappingUpdateError) throw new Error(mappingUpdateError.message);
-
-      await supabase.from("audit_logs").insert({
-        actor_type: "admin",
-        actor_id: admin?.id,
-        action: "ccb_event_created_for_group",
-        target_type: "ccb_event",
-        target_id: resolvedEventId,
-        metadata_json: {
-          group_id: mapping.ccb_group_id,
-          group_name: mapping.group_name,
-          recurrence_type: input.recurrenceType,
-          event_grouping_id: resolvedEventGroupingId
-        }
-      });
-    } else if (resolvedEventGroupingId || input.autoAddCheckinsToGroup !== mapping.auto_add_checkins_to_group) {
-      await supabase
-        .from("ccb_group_mappings")
-        .update({
-          ccb_event_grouping_id: resolvedEventGroupingId || mapping.ccb_event_grouping_id || null,
-          auto_add_checkins_to_group: input.autoAddCheckinsToGroup
-        })
-        .eq("id", mapping.id);
-    }
+    const dayOfWeek = new Date(`${input.meetingDate}T12:00:00Z`).getUTCDay();
+    const event = await ensureClassAttendanceEvent(
+      mapping,
+      {
+        dayOfWeek,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        timeZone: DEFAULT_CLASS_TIME_ZONE
+      },
+      admin.id
+    );
+    const occurrenceStartAt = zonedLocalDateTimeToIso(
+      input.meetingDate,
+      input.startTime,
+      DEFAULT_CLASS_TIME_ZONE
+    );
+    const occurrenceEndAt = zonedLocalDateTimeToIso(
+      input.meetingDate,
+      input.endTime,
+      DEFAULT_CLASS_TIME_ZONE
+    );
+    const startMs = new Date(occurrenceStartAt).getTime();
+    const endMs = new Date(occurrenceEndAt).getTime();
+    const title = input.title || `${mapping.group_name} Special Meeting`;
 
     const { data: session, error: sessionError } = await supabase
       .from("checkin_sessions")
       .insert({
         ccb_group_id: mapping.ccb_group_id,
-        ccb_event_id: resolvedEventId,
-        title: input.title,
-        occurrence_date: input.occurrenceDate,
-        occurrence_start_at: input.occurrenceStartAt || null,
-        occurrence_end_at: input.occurrenceEndAt || null,
-        checkin_opens_at: input.checkinOpensAt || null,
-        checkin_closes_at: input.checkinClosesAt || null,
-        status: input.status,
-        created_by: admin?.id,
+        ccb_event_id: event.ccbEventId,
+        title,
+        occurrence_date: input.meetingDate,
+        occurrence_start_at: occurrenceStartAt,
+        occurrence_end_at: occurrenceEndAt,
+        checkin_opens_at: new Date(startMs - 30 * 60_000).toISOString(),
+        checkin_closes_at: new Date(endMs + 30 * 60_000).toISOString(),
+        status: "active",
+        created_by: admin.id,
+        meeting_kind: "special",
+        special_case_note: input.note || null,
         options: {
           mapping_id: mapping.id,
           group_name: mapping.group_name,
-          ccb_occurrence: ccbOccurrence,
-          event_created_by_app: Boolean(createdEvent),
-          recurrence_type: input.recurrenceType,
-          event_grouping_id: resolvedEventGroupingId || null,
-          auto_add_checkins_to_group: input.autoAddCheckinsToGroup
+          ccb_occurrence: ccbOccurrenceForDate(
+            input.meetingDate,
+            event.ccbOccurrenceTime
+          ),
+          event_grouping_id: mapping.ccb_event_grouping_id,
+          auto_add_checkins_to_group:
+            mapping.auto_add_checkins_to_group ?? true,
+          meeting_kind: "special"
         }
       })
       .select("*")
       .single();
 
     if (sessionError || !session) {
-      throw new Error(sessionError?.message ?? "Could not create session.");
+      throw new Error(sessionError?.message ?? "Could not add the special meeting.");
     }
 
-    if (input.status === "active") {
-      const { error: closeError } = await supabase
-        .from("checkin_sessions")
-        .update({ status: "closed" })
-        .eq("ccb_group_id", mapping.ccb_group_id)
-        .eq("status", "active")
-        .neq("id", session.id);
-
-      if (closeError) throw new Error(closeError.message);
-    }
-
-    const env = getServerEnv();
-    const checkinUrl = buildClassCheckinUrl(
-      env.APP_BASE_URL,
-      mapping.public_checkin_slug
-    );
-    const qrDataUrl = await QRCode.toDataURL(checkinUrl, {
-      margin: 2,
-      width: 768,
-      color: { dark: "#12362fff", light: "#ffffffff" }
-    });
-
-    return NextResponse.json({
-      session,
-      createdEvent,
-      classLink: {
-        mappingId: mapping.id,
-        className: mapping.group_name,
-        publicSlug: mapping.public_checkin_slug,
-        checkinUrl,
-        qrDataUrl
+    await supabase.from("audit_logs").insert({
+      actor_type: "admin",
+      actor_id: admin.id,
+      action: "special_class_meeting_created",
+      target_type: "checkin_session",
+      target_id: session.id,
+      metadata_json: {
+        group_id: mapping.ccb_group_id,
+        meeting_date: input.meetingDate
       }
     });
-  } catch (error) {
-    const message =
-      error instanceof CcbClientError
-        ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Unknown session/event creation error.";
 
+    return NextResponse.json({ session, eventCreated: event.created });
+  } catch (error) {
     return NextResponse.json(
       {
-        error: message,
-        ccbService: error instanceof CcbClientError ? error.service : undefined,
-        ccbStatus: error instanceof CcbClientError ? error.status : undefined,
-        ccbResponse: error instanceof CcbClientError ? error.responseBody : undefined
+        error: error instanceof Error ? error.message : "Could not add the special meeting.",
+        ccbService: error instanceof CcbClientError ? error.service : undefined
       },
       { status: 500 }
     );
   }
-}
-
-function toCcbDateTime(value: string) {
-  const normalized = value.trim().replace("T", " ");
-  return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(normalized)
-    ? `${normalized}:00`
-    : normalized;
-}
-
-function getRecurrenceDefaults(input: {
-  recurrenceType: "none" | "daily" | "weekly" | "monthly";
-  occurrenceLocalStart: string;
-  recurrenceWeekNumber?: "first" | "second" | "third" | "fourth" | "last";
-  recurrenceDayOfWeek?: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-  recurrenceDayOfMonth?: number;
-}) {
-  if (input.recurrenceType === "weekly") {
-    return {
-      recurrenceDayOfWeek: input.recurrenceDayOfWeek ?? getCcbDayOfWeek(input.occurrenceLocalStart),
-      recurrenceWeekNumber: undefined,
-      recurrenceDayOfMonth: undefined
-    };
-  }
-
-  if (input.recurrenceType === "monthly") {
-    if (input.recurrenceWeekNumber) {
-      return {
-        recurrenceWeekNumber: input.recurrenceWeekNumber,
-        recurrenceDayOfWeek: input.recurrenceDayOfWeek ?? getCcbDayOfWeek(input.occurrenceLocalStart),
-        recurrenceDayOfMonth: undefined
-      };
-    }
-
-    return {
-      recurrenceWeekNumber: undefined,
-      recurrenceDayOfWeek: undefined,
-      recurrenceDayOfMonth:
-        input.recurrenceDayOfMonth ?? new Date(input.occurrenceLocalStart).getDate()
-    };
-  }
-
-  return {
-    recurrenceWeekNumber: undefined,
-    recurrenceDayOfWeek: undefined,
-    recurrenceDayOfMonth: undefined
-  };
-}
-
-function getCcbDayOfWeek(localDateTime: string): "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat" {
-  const date = new Date(localDateTime);
-  const days = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
-  return days[date.getDay()] ?? "sun";
-}
-
-function readId(value: unknown) {
-  return value && typeof value === "object" && "id" in value
-    ? String((value as { id: unknown }).id)
-    : "";
-}
-
-function readName(value: unknown) {
-  return value && typeof value === "object" && "name" in value
-    ? String((value as { name: unknown }).name ?? "") || null
-    : null;
 }

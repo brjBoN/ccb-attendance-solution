@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { requireAdminForApi } from "@/lib/auth/api";
 import { createCcbClient } from "@/lib/ccb/client";
+import { rankCcbGroups } from "@/lib/ccb/group-search";
 import { CcbClientError } from "@/lib/ccb/types";
+
+const listGroupsCached = unstable_cache(
+  async () => createCcbClient().listGroups(),
+  ["ccb-group-search-index-v1"],
+  { revalidate: 300 }
+);
 
 export async function GET(request: NextRequest) {
   const { response } = await requireAdminForApi();
@@ -11,27 +19,20 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") ?? 50), 100);
 
   try {
-    const client = createCcbClient();
-    const groups = await client.listGroups();
-
-    const filtered = query
-      ? groups.filter((group) =>
-          [group.name, group.description, group.groupType, group.campus, group.leaderName]
-            .filter(Boolean)
-            .some((value) => String(value).toLowerCase().includes(query))
-        )
-      : groups;
+    const groups = await listGroupsCached();
+    const ranked = rankCcbGroups(groups, query);
 
     return NextResponse.json({
-      count: filtered.length,
-      results: filtered.slice(0, limit).map((group) => ({
+      count: ranked.length,
+      results: ranked.slice(0, limit).map(({ group, matchReason }) => ({
         id: group.id,
         name: group.name,
         description: group.description,
         groupType: group.groupType,
         campus: group.campus,
         leaderName: group.leaderName,
-        mainLeaderId: group.mainLeaderId
+        mainLeaderId: group.mainLeaderId,
+        matchReason
       }))
     });
   } catch (error) {

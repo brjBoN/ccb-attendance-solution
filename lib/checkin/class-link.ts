@@ -13,6 +13,7 @@ type SessionCandidate = {
   occurrence_start_at: string | null;
   occurrence_end_at: string | null;
   status: string;
+  meeting_kind?: string;
   checkin_opens_at: string | null;
   checkin_closes_at: string | null;
   options: unknown;
@@ -73,7 +74,7 @@ export async function getInternalCheckinSessionByClassSlug(
   const { data: sessions, error: sessionsError } = await supabase
     .from("checkin_sessions")
     .select(
-      "id,title,ccb_group_id,ccb_event_id,occurrence_date,occurrence_start_at,occurrence_end_at,status,checkin_opens_at,checkin_closes_at,options,created_at"
+      "id,title,ccb_group_id,ccb_event_id,occurrence_date,occurrence_start_at,occurrence_end_at,status,checkin_opens_at,checkin_closes_at,meeting_kind,options,created_at"
     )
     .eq("ccb_group_id", classMapping.ccb_group_id)
     .eq("status", "active")
@@ -89,11 +90,37 @@ export async function getInternalCheckinSessionByClassSlug(
     };
   }
 
-  const selected = selectCurrentClassSession((sessions ?? []) as SessionCandidate[]);
+  let candidates = (sessions ?? []) as SessionCandidate[];
+  let selected = selectCurrentClassSession(candidates);
+
+  if (!selected) {
+    const { data: scheduledSessionId } = await supabase.rpc(
+      "ensure_current_class_session",
+      {
+        p_public_slug: slug,
+        p_now: new Date().toISOString()
+      }
+    );
+
+    if (scheduledSessionId) {
+      const { data: scheduledSession } = await supabase
+        .from("checkin_sessions")
+        .select(
+          "id,title,ccb_group_id,ccb_event_id,occurrence_date,occurrence_start_at,occurrence_end_at,status,checkin_opens_at,checkin_closes_at,meeting_kind,options,created_at"
+        )
+        .eq("id", scheduledSessionId)
+        .maybeSingle();
+
+      if (scheduledSession) {
+        candidates = [scheduledSession as SessionCandidate, ...candidates];
+        selected = selectCurrentClassSession(candidates);
+      }
+    }
+  }
 
   if (!selected) {
     const now = new Date();
-    const nextSession = ((sessions ?? []) as SessionCandidate[])
+    const nextSession = candidates
       .filter(
         (session) =>
           session.status === "active" &&

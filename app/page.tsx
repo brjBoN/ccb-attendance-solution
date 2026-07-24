@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,18 +12,18 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#f3f2ec]">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12362f] text-[#f1b86b]">
-            <ScanLine className="h-5 w-5" />
-          </span>
-          <span>
-            <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#167365]">
-              CCB
-            </span>
-            <span className="block text-sm font-bold text-[#18332d]">
-              Class Check-In
-            </span>
-          </span>
+        <Link
+          href="/"
+          className="rounded-2xl bg-[#12362f] px-3 py-1.5"
+        >
+          <Image
+            src="/heritage-church-logo.png"
+            alt="Heritage Church"
+            width={512}
+            height={288}
+            priority
+            className="h-auto w-[150px] mix-blend-screen"
+          />
         </Link>
         <Link
           href="/login"
@@ -36,21 +37,21 @@ export default function HomePage() {
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-[#cde2db] bg-[#e6f3ee] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#14685b]">
             <Radio className="h-3.5 w-3.5" />
-            One QR code per class
+            Heritage Church attendance
           </div>
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-[#15362e] sm:text-6xl lg:text-7xl">
-            Check-in that feels familiar every week.
+            Class attendance that follows the schedule.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[#667670]">
-            Each class keeps one reusable QR code. Leaders open a meeting,
-            members scan the same link, and attendance is synchronized to CCB.
+            Leaders set each class&apos;s weekly times, members check in when
+            class meets, and attendance is synchronized to CCB.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/admin/sessions"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#167365] px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(22,115,101,0.22)] transition hover:bg-[#0f6156]"
             >
-              Open attendance
+              Manage schedules
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
@@ -62,7 +63,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#5d7069]">
-            <Benefit>Permanent class links</Benefit>
+            <Benefit>Automatic class schedules</Benefit>
             <Benefit>Private profile search</Benefit>
             <Benefit>CCB attendance sync</Benefit>
           </div>

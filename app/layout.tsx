@@ -12,15 +12,15 @@ export async function generateMetadata(): Promise<Metadata> {
     requestHeaders.get("x-forwarded-proto") ??
     (host.startsWith("localhost") ? "http" : "https");
   const metadataBase = new URL(`${protocol}://${host}`);
-  const title = "CCB Class Check-In";
+  const title = "Heritage Church Attendance";
   const description =
-    "One reusable QR code per class, with attendance synchronized to CCB.";
+    "Simple class schedules and attendance synchronized to CCB for Heritage Church.";
 
   return {
     metadataBase,
     title: {
       default: title,
-      template: "%s · CCB Class Check-In"
+      template: "%s · Heritage Church Attendance"
     },
     description,
     openGraph: {
@@ -30,9 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: "/og.png",
-          width: 1744,
-          height: 912,
-          alt: "CCB Class Check-In — One QR code. Every meeting."
+          width: 1734,
+          height: 907,
+          alt: "Heritage Church Attendance"
         }
       ]
     },

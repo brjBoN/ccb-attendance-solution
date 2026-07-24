@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,7 +10,6 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
-  Sparkles,
   UserRoundPlus,
   UsersRound
 } from "lucide-react";
@@ -32,7 +32,7 @@ const nav = [
   },
   {
     href: "/admin/sessions",
-    label: "Class check-in",
+    label: "Schedules",
     icon: ScanLine,
     fullAdminOnly: false
   },
@@ -85,19 +85,16 @@ export function AdminShell({
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[276px] flex-col bg-[#12362f] p-4 text-white lg:flex">
         <Link
           href="/admin"
-          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4"
+          className="flex min-h-[104px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f1b86b] text-[#24362d]">
-            <ScanLine className="h-6 w-6" />
-          </span>
-          <span>
-            <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-[#9fd8c8]">
-              CCB
-            </span>
-            <span className="mt-0.5 block text-base font-semibold tracking-[-0.01em]">
-              Class Check-In
-            </span>
-          </span>
+          <Image
+            src="/heritage-church-logo.png"
+            alt="Heritage Church"
+            width={512}
+            height={288}
+            priority
+            className="h-auto w-full max-w-[220px] mix-blend-screen"
+          />
         </Link>
 
         <nav className="mt-6 flex-1 space-y-1">
@@ -123,15 +120,6 @@ export function AdminShell({
           })}
         </nav>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#9fd8c8]">
-            <Sparkles className="h-3.5 w-3.5" />
-            Reusable QR
-          </div>
-          <p className="mt-2 text-sm leading-5 text-white/65">
-            Every class now keeps one link for every meeting.
-          </p>
-        </div>
       </aside>
 
       <div className="lg:pl-[276px]">
@@ -145,7 +133,7 @@ export function AdminShell({
                 <ScanLine className="h-5 w-5" />
               </span>
               <span className="text-sm font-bold text-[#18332d]">
-                Class Check-In
+                Heritage Attendance
               </span>
             </Link>
 

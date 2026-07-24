@@ -11,31 +11,43 @@ import {
   useTransition
 } from "react";
 import {
-  AlertTriangle,
   CalendarDays,
+  CalendarPlus,
   Check,
   Clock3,
   Copy,
   Download,
   ExternalLink,
-  Link2,
   Loader2,
-  Play,
+  Plus,
   QrCode,
   Radio,
+  Save,
+  Trash2,
   X
 } from "lucide-react";
-import { CCB_ATTENDANCE_GROUPING_OPTIONS } from "@/lib/ccb/group-create-options";
 
 type GroupMapping = {
   id: string;
   ccb_group_id: string;
   group_name: string;
   ccb_event_id: string | null;
-  ccb_event_grouping_id: string | null;
-  auto_add_checkins_to_group: boolean | null;
   public_checkin_slug: string | null;
   enabled: boolean;
+};
+
+type ScheduleSlot = {
+  id?: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+};
+
+type StoredScheduleSlot = {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
 };
 
 type SessionRow = {
@@ -45,15 +57,8 @@ type SessionRow = {
   ccb_event_id: string;
   occurrence_date: string;
   occurrence_start_at: string | null;
-  checkin_opens_at: string | null;
-  checkin_closes_at: string | null;
   status: "draft" | "active" | "closed" | "cancelled";
-  options?: {
-    group_name?: string;
-    mapping_id?: string;
-    event_grouping_id?: string | null;
-    auto_add_checkins_to_group?: boolean;
-  };
+  meeting_kind?: "regular" | "special";
 };
 
 type ClassLink = {
@@ -64,15 +69,20 @@ type ClassLink = {
   qrDataUrl: string;
 };
 
-function toLocalDateTimeValue(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-}
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday"
+];
 
-function localInputToIso(value: string) {
-  return value ? new Date(value).toISOString() : null;
+function todayValue() {
+  const date = new Date();
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
 function formatMeetingDate(value: string | null, fallback: string) {
@@ -86,39 +96,23 @@ function formatMeetingDate(value: string | null, fallback: string) {
   }).format(date);
 }
 
+function normalizeStoredTime(value: string) {
+  return value.slice(0, 5);
+}
+
 export function AdminSessionsManager() {
-  const initialStart = useMemo(() => new Date(), []);
   const [mappings, setMappings] = useState<GroupMapping[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [selectedMappingId, setSelectedMappingId] = useState("");
   const [classLink, setClassLink] = useState<ClassLink | null>(null);
   const [classLinkLoading, setClassLinkLoading] = useState(false);
-  const [title, setTitle] = useState("");
-  const [eventId, setEventId] = useState("");
-  const [eventGroupingId, setEventGroupingId] = useState("");
-  const [autoAddCheckinsToGroup, setAutoAddCheckinsToGroup] = useState(true);
-  const [eventDescription, setEventDescription] = useState("");
-  const [recurrenceType, setRecurrenceType] = useState<
-    "none" | "daily" | "weekly" | "monthly"
-  >("none");
-  const [recurrenceFrequency, setRecurrenceFrequency] = useState("1");
-  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
-  const [numberOfOccurrences, setNumberOfOccurrences] = useState("");
-  const [eventListed, setEventListed] = useState(false);
-  const [attendanceReminder, setAttendanceReminder] = useState(true);
-  const [occurrenceDate, setOccurrenceDate] = useState(
-    toLocalDateTimeValue(initialStart).slice(0, 10)
-  );
-  const [startAt, setStartAt] = useState(toLocalDateTimeValue(initialStart));
-  const [endAt, setEndAt] = useState(
-    toLocalDateTimeValue(new Date(initialStart.getTime() + 90 * 60 * 1000))
-  );
-  const [opensAt, setOpensAt] = useState(
-    toLocalDateTimeValue(new Date(initialStart.getTime() - 30 * 60 * 1000))
-  );
-  const [closesAt, setClosesAt] = useState(
-    toLocalDateTimeValue(new Date(initialStart.getTime() + 2 * 60 * 60 * 1000))
-  );
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [schedule, setSchedule] = useState<ScheduleSlot[]>([]);
+  const [specialTitle, setSpecialTitle] = useState("");
+  const [specialDate, setSpecialDate] = useState(todayValue);
+  const [specialStart, setSpecialStart] = useState("18:00");
+  const [specialEnd, setSpecialEnd] = useState("19:30");
+  const [specialNote, setSpecialNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -127,19 +121,10 @@ export function AdminSessionsManager() {
     [mappings, selectedMappingId]
   );
 
-  const selectedGroupingLabel = useMemo(
-    () =>
-      CCB_ATTENDANCE_GROUPING_OPTIONS.find(
-        (option) => option.value === eventGroupingId
-      )?.label ?? "",
-    [eventGroupingId]
-  );
-
   const selectedSessions = useMemo(
     () =>
       sessions.filter(
-        (session) =>
-          session.ccb_group_id === selectedMapping?.ccb_group_id
+        (session) => session.ccb_group_id === selectedMapping?.ccb_group_id
       ),
     [selectedMapping, sessions]
   );
@@ -161,11 +146,7 @@ export function AdminSessionsManager() {
   }, []);
 
   const loadClassLink = useCallback(async (mappingId: string) => {
-    if (!mappingId) {
-      setClassLink(null);
-      return;
-    }
-
+    if (!mappingId) return;
     setClassLinkLoading(true);
     setClassLink(null);
     const response = await fetch(
@@ -173,13 +154,38 @@ export function AdminSessionsManager() {
     );
     const data = await response.json();
     setClassLinkLoading(false);
-
     if (!response.ok) {
-      setMessage(data.error ?? "Could not load the permanent class QR code.");
+      setMessage(data.error ?? "Could not load the class QR code.");
+      return;
+    }
+    setClassLink(data.classLink);
+  }, []);
+
+  const loadSchedule = useCallback(async (mappingId: string) => {
+    if (!mappingId) return;
+    setScheduleLoading(true);
+    const response = await fetch(
+      `/api/admin/group-mappings/${mappingId}/schedule`
+    );
+    const data = await response.json();
+    setScheduleLoading(false);
+    if (!response.ok) {
+      setSchedule([]);
+      setMessage(data.error ?? "Could not load the class schedule.");
       return;
     }
 
-    setClassLink(data.classLink);
+    const stored = (data.results ?? []) as StoredScheduleSlot[];
+    setSchedule(
+      stored.length
+        ? stored.map((slot) => ({
+            id: slot.id,
+            dayOfWeek: slot.day_of_week,
+            startTime: normalizeStoredTime(slot.start_time),
+            endTime: normalizeStoredTime(slot.end_time)
+          }))
+        : [{ dayOfWeek: 0, startTime: "09:00", endTime: "10:15" }]
+    );
   }, []);
 
   useEffect(() => {
@@ -189,80 +195,96 @@ export function AdminSessionsManager() {
 
   useEffect(() => {
     if (!selectedMapping) return;
-    setEventId(selectedMapping.ccb_event_id ?? "");
-    setEventGroupingId(selectedMapping.ccb_event_grouping_id ?? "");
-    setAutoAddCheckinsToGroup(
-      selectedMapping.auto_add_checkins_to_group ?? true
+    setMessage(null);
+    setSpecialTitle("");
+    void Promise.all([
+      loadClassLink(selectedMapping.id),
+      loadSchedule(selectedMapping.id)
+    ]);
+  }, [loadClassLink, loadSchedule, selectedMapping]);
+
+  function updateScheduleSlot(index: number, patch: Partial<ScheduleSlot>) {
+    setSchedule((current) =>
+      current.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, ...patch } : slot
+      )
     );
-    setTitle(`${selectedMapping.group_name} Meeting`);
-    void loadClassLink(selectedMapping.id);
-  }, [loadClassLink, selectedMapping]);
+  }
 
-  function createMeeting(event: FormEvent<HTMLFormElement>) {
+  function addScheduleSlot() {
+    const usedDays = new Set(schedule.map((slot) => slot.dayOfWeek));
+    const nextDay = DAYS.findIndex((_day, index) => !usedDays.has(index));
+    setSchedule((current) => [
+      ...current,
+      {
+        dayOfWeek: nextDay >= 0 ? nextDay : 0,
+        startTime: "18:00",
+        endTime: "19:30"
+      }
+    ]);
+  }
+
+  function saveSchedule(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedMappingId) {
-      setMessage("Choose a class first.");
-      return;
-    }
-
-    if (!eventId && !eventGroupingId) {
-      setMessage(
-        "Choose a CCB Attendance Grouping before creating a new CCB event."
-      );
-      return;
-    }
+    if (!selectedMappingId || !schedule.length) return;
 
     startTransition(async () => {
-      setMessage(
-        eventId
-          ? "Opening this meeting for check-in..."
-          : "Creating the CCB event and opening this meeting..."
+      setMessage("Saving the class schedule...");
+      const response = await fetch(
+        `/api/admin/group-mappings/${selectedMappingId}/schedule`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slots: schedule })
+        }
       );
+      const data = await response.json();
+      if (!response.ok) {
+        setMessage(data.error ?? "Could not save the class schedule.");
+        return;
+      }
 
+      setMessage(
+        data.eventCreated
+          ? "Schedule saved. The class attendance event was created in CCB automatically."
+          : "Schedule saved. Check-in will open automatically around each class time."
+      );
+      await Promise.all([
+        loadMappings(),
+        loadSchedule(selectedMappingId)
+      ]);
+    });
+  }
+
+  function createSpecialMeeting(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedMappingId) return;
+
+    startTransition(async () => {
+      setMessage("Adding the special meeting...");
       const response = await fetch("/api/admin/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mappingId: selectedMappingId,
-          title,
-          ccbEventId: eventId,
-          eventGroupingId,
-          autoAddCheckinsToGroup,
-          occurrenceDate,
-          occurrenceStartAt: localInputToIso(startAt),
-          occurrenceEndAt: localInputToIso(endAt),
-          occurrenceLocalStart: startAt,
-          occurrenceLocalEnd: endAt,
-          checkinOpensAt: localInputToIso(opensAt),
-          checkinClosesAt: localInputToIso(closesAt),
-          status: "active",
-          createEventIfMissing: true,
-          eventDescription,
-          recurrenceType,
-          recurrenceFrequency: Number(recurrenceFrequency || 1),
-          recurrenceEndDate,
-          numberOfOccurrences: numberOfOccurrences
-            ? Number(numberOfOccurrences)
-            : null,
-          eventListed,
-          attendanceReminder,
-          eventNotification: false
+          title: specialTitle,
+          meetingDate: specialDate,
+          startTime: specialStart,
+          endTime: specialEnd,
+          note: specialNote
         })
       });
-
       const data = await response.json();
       if (!response.ok) {
-        setMessage(data.error ?? "Could not open this meeting.");
+        setMessage(data.error ?? "Could not add the special meeting.");
         return;
       }
 
-      setClassLink(data.classLink);
-      setEventId(data.session.ccb_event_id);
       setMessage(
-        data.createdEvent
-          ? `Meeting is open. CCB event ${data.createdEvent.id} was created with ${selectedGroupingLabel || eventGroupingId}. The class QR code did not change.`
-          : "Meeting is open. Members can scan the class's usual QR code now."
+        "Special meeting added. It will use the class's normal check-in code."
       );
+      setSpecialTitle("");
+      setSpecialNote("");
       await Promise.all([loadMappings(), loadSessions()]);
     });
   }
@@ -280,9 +302,7 @@ export function AdminSessionsManager() {
       const data = await response.json();
       setMessage(
         response.ok
-          ? status === "active"
-            ? "Meeting is open. The permanent class QR now points here."
-            : `Meeting marked ${status}.`
+          ? `Meeting marked ${status}.`
           : data.error ?? "Could not update this meeting."
       );
       if (response.ok) await loadSessions();
@@ -292,25 +312,20 @@ export function AdminSessionsManager() {
   async function copyLink() {
     if (!classLink) return;
     await navigator.clipboard.writeText(classLink.checkinUrl);
-    setMessage("Permanent class check-in link copied.");
+    setMessage("Class check-in link copied.");
   }
 
   return (
     <div className="space-y-7">
-      <section className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="overflow-hidden rounded-[28px] border border-[#d9ddd7] bg-[#12362f] text-white shadow-[0_24px_70px_rgba(24,45,39,0.12)] xl:sticky xl:top-24 xl:self-start">
+      <section className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <aside className="overflow-hidden rounded-[28px] bg-[#12362f] text-white shadow-[0_24px_70px_rgba(24,45,39,0.14)] xl:sticky xl:top-24 xl:self-start">
           <div className="border-b border-white/10 p-6">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#a8decf]">
-              <Radio className="h-4 w-4" />
-              Permanent class check-in
-            </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
-              One code. Every meeting.
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-white/70">
-              Print it once or save the link. Opening a meeting makes this same
-              code ready for attendance.
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a8decf]">
+              Class check-in code
             </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em]">
+              {selectedMapping?.group_name ?? "Choose a class"}
+            </h2>
           </div>
 
           <div className="p-6">
@@ -335,7 +350,7 @@ export function AdminSessionsManager() {
               </select>
             </label>
 
-            <div className="mt-5 flex min-h-72 items-center justify-center rounded-2xl bg-white p-4">
+            <div className="mt-5 flex min-h-64 items-center justify-center rounded-2xl bg-white p-4">
               {classLinkLoading ? (
                 <div className="text-center text-[#49615b]">
                   <Loader2 className="mx-auto h-7 w-7 animate-spin" />
@@ -344,336 +359,274 @@ export function AdminSessionsManager() {
               ) : classLink ? (
                 <Image
                   src={classLink.qrDataUrl}
-                  alt={`Permanent QR code for ${classLink.className}`}
+                  alt={`QR code for ${classLink.className}`}
                   width={288}
                   height={288}
                   unoptimized
-                  className="h-auto w-full max-w-72"
+                  className="h-auto w-full max-w-64"
                   priority
                 />
               ) : (
                 <div className="text-center text-[#70817c]">
                   <QrCode className="mx-auto h-10 w-10" />
                   <p className="mt-3 text-sm font-medium">
-                    Choose a class to view its QR
+                    Choose a class to view its code
                   </p>
                 </div>
               )}
             </div>
 
             {classLink ? (
-              <>
-                <p className="mt-4 truncate rounded-xl bg-white/10 px-3 py-2.5 text-xs text-white/75">
-                  {classLink.checkinUrl}
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={copyLink}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f1b86b] px-3 py-2.5 text-sm font-semibold text-[#2f2b1f] transition hover:bg-[#f5c681]"
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy link
-                  </button>
-                  <a
-                    href={classLink.qrDataUrl}
-                    download={`${classLink.className.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-class-qr.png`}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </a>
-                </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f1b86b] px-3 py-2.5 text-sm font-semibold text-[#2f2b1f] transition hover:bg-[#f5c681]"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy link
+                </button>
+                <a
+                  href={classLink.qrDataUrl}
+                  download={`${classLink.className.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-class-qr.png`}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </a>
                 <a
                   href={classLink.checkinUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-white/65 transition hover:text-white"
+                  className="col-span-2 inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-white/65 transition hover:text-white"
                 >
-                  Preview check-in page
+                  Preview check-in
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
-              </>
+              </div>
             ) : null}
           </div>
         </aside>
 
-        <div className="rounded-[28px] border border-[#d9ddd7] bg-white p-5 shadow-[0_24px_70px_rgba(24,45,39,0.08)] sm:p-7">
-          <div className="flex flex-col gap-4 border-b border-[#e8ebe6] pb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#167365]">
-                <Play className="h-4 w-4" />
-                Open attendance
-              </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-[#18332d]">
-                Open a meeting
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#60706b]">
-                Set today&apos;s attendance window. The permanent class QR will
-                automatically send members to this meeting.
-              </p>
-            </div>
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#e5f4ef] px-3 py-1.5 text-xs font-semibold text-[#12675b]">
-              <Link2 className="h-3.5 w-3.5" />
-              QR stays the same
-            </div>
-          </div>
-
+        <div className="space-y-6">
           {!mappings.length ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-[#c8d1cb] bg-[#f8f8f4] p-8 text-center">
-              <QrCode className="mx-auto h-9 w-9 text-[#81908a]" />
-              <h3 className="mt-3 font-semibold text-[#18332d]">
+            <div className="surface-card p-10 text-center">
+              <QrCode className="mx-auto h-10 w-10 text-[#81908a]" />
+              <h2 className="mt-4 text-xl font-semibold text-[#18332d]">
                 No classes are enabled yet
-              </h3>
-              <p className="mt-1 text-sm text-[#60706b]">
-                Add a CCB group before opening attendance.
+              </h2>
+              <p className="mt-2 text-sm text-[#60706b]">
+                Add a CCB class before setting attendance times.
               </p>
               <Link
                 href="/admin/groups"
-                className="mt-4 inline-flex rounded-xl bg-[#167365] px-4 py-2.5 text-sm font-semibold text-white"
+                className="mt-5 inline-flex rounded-xl bg-[#167365] px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Manage classes
               </Link>
             </div>
           ) : (
-            <form onSubmit={createMeeting} className="mt-6 space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Meeting name" className="sm:col-span-2">
-                  <input
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    required
-                    className="form-input"
-                  />
-                </Field>
-
-                <Field label="Starts">
-                  <div className="relative">
-                    <CalendarDays className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#7b8a85]" />
-                    <input
-                      type="datetime-local"
-                      value={startAt}
-                      onChange={(event) => {
-                        setStartAt(event.target.value);
-                        setOccurrenceDate(event.target.value.slice(0, 10));
-                      }}
-                      required
-                      className="form-input pl-10"
-                    />
+            <>
+              <form onSubmit={saveSchedule} className="surface-card p-5 sm:p-7">
+                <div className="flex flex-col gap-4 border-b border-[#e8ebe6] pb-6 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[#167365]">
+                      <CalendarDays className="h-4 w-4" />
+                      Regular schedule
+                    </div>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-[#18332d]">
+                      When does this class meet?
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#60706b]">
+                      Add every usual day and time. Check-in opens 30 minutes
+                      before class and closes 30 minutes after it ends.
+                    </p>
                   </div>
-                </Field>
-                <Field label="Ends">
-                  <div className="relative">
-                    <Clock3 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#7b8a85]" />
-                    <input
-                      type="datetime-local"
-                      value={endAt}
-                      onChange={(event) => setEndAt(event.target.value)}
-                      required
-                      className="form-input pl-10"
-                    />
-                  </div>
-                </Field>
-                <Field label="Check-in opens" help="Usually 30 minutes before">
-                  <input
-                    type="datetime-local"
-                    value={opensAt}
-                    onChange={(event) => setOpensAt(event.target.value)}
-                    className="form-input"
-                  />
-                </Field>
-                <Field label="Check-in closes" help="The QR pauses after this time">
-                  <input
-                    type="datetime-local"
-                    value={closesAt}
-                    onChange={(event) => setClosesAt(event.target.value)}
-                    className="form-input"
-                  />
-                </Field>
-              </div>
-
-              <details className="group rounded-2xl border border-[#dfe4df] bg-[#fafaf7]">
-                <summary className="cursor-pointer list-none px-4 py-4 text-sm font-semibold text-[#304b44] marker:hidden">
-                  <span className="flex items-center justify-between">
-                    CCB event settings
-                    <span className="text-xs font-medium text-[#7b8a85] group-open:hidden">
-                      Show
-                    </span>
-                    <span className="hidden text-xs font-medium text-[#7b8a85] group-open:inline">
-                      Hide
-                    </span>
-                  </span>
-                </summary>
-                <div className="grid gap-4 border-t border-[#e4e8e3] p-4 sm:grid-cols-2">
-                  <Field
-                    label="Existing CCB event ID"
-                    help="Leave blank to create and map an event."
+                  <button
+                    type="button"
+                    onClick={addScheduleSlot}
+                    disabled={schedule.length >= 14}
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#cbd7d1] bg-white px-4 py-2.5 text-sm font-semibold text-[#34544b] transition hover:bg-[#f5f8f6] disabled:opacity-50"
                   >
-                    <input
-                      value={eventId}
-                      onChange={(event) => setEventId(event.target.value)}
-                      className="form-input"
-                    />
-                  </Field>
-                  <Field
-                    label="CCB Attendance Grouping"
-                    help="Required when the app creates the event."
-                  >
-                    <select
-                      value={eventGroupingId}
-                      onChange={(event) =>
-                        setEventGroupingId(event.target.value)
-                      }
-                      className="form-input"
-                    >
-                      <option value="">Choose attendance grouping...</option>
-                      {CCB_ATTENDANCE_GROUPING_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
+                    <Plus className="h-4 w-4" />
+                    Add another time
+                  </button>
+                </div>
 
-                  {eventId ? (
-                    <div className="sm:col-span-2 flex gap-3 rounded-xl border border-[#ead9b4] bg-[#fff8e8] p-4 text-sm leading-6 text-[#6f5627]">
-                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-                      Confirm this event already has the correct Attendance
-                      Grouping in CCB.
+                <div className="mt-6 space-y-3">
+                  {scheduleLoading ? (
+                    <div className="flex items-center justify-center py-12 text-sm text-[#667670]">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading schedule
                     </div>
                   ) : (
-                    <>
-                      <Field label="Recurrence">
-                        <select
-                          value={recurrenceType}
-                          onChange={(event) =>
-                            setRecurrenceType(
-                              event.target.value as typeof recurrenceType
+                    schedule.map((slot, index) => (
+                      <div
+                        key={slot.id ?? `new-${index}`}
+                        className="grid gap-3 rounded-2xl border border-[#dfe5e0] bg-[#fafbf8] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+                      >
+                        <Field label="Day">
+                          <select
+                            value={slot.dayOfWeek}
+                            onChange={(event) =>
+                              updateScheduleSlot(index, {
+                                dayOfWeek: Number(event.target.value)
+                              })
+                            }
+                            className="form-input"
+                          >
+                            {DAYS.map((day, dayIndex) => (
+                              <option key={day} value={dayIndex}>
+                                {day}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+                        <Field label="Starts">
+                          <input
+                            type="time"
+                            value={slot.startTime}
+                            onChange={(event) =>
+                              updateScheduleSlot(index, {
+                                startTime: event.target.value
+                              })
+                            }
+                            required
+                            className="form-input"
+                          />
+                        </Field>
+                        <Field label="Ends">
+                          <input
+                            type="time"
+                            value={slot.endTime}
+                            onChange={(event) =>
+                              updateScheduleSlot(index, {
+                                endTime: event.target.value
+                              })
+                            }
+                            required
+                            className="form-input"
+                          />
+                        </Field>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSchedule((current) =>
+                              current.filter((_item, itemIndex) => itemIndex !== index)
                             )
                           }
-                          className="form-input"
+                          disabled={schedule.length === 1}
+                          aria-label="Remove meeting time"
+                          className="inline-flex h-11 items-center justify-center rounded-xl border border-[#e5d7d2] bg-white px-3 text-[#a14b3e] transition hover:bg-[#fff5f1] disabled:cursor-not-allowed disabled:opacity-35"
                         >
-                          <option value="none">One-time event</option>
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                        </select>
-                      </Field>
-                      <Field label="Repeat every">
-                        <input
-                          type="number"
-                          min="1"
-                          max="52"
-                          value={recurrenceFrequency}
-                          onChange={(event) =>
-                            setRecurrenceFrequency(event.target.value)
-                          }
-                          className="form-input"
-                        />
-                      </Field>
-                      <Field label="Number of meetings" help="Optional">
-                        <input
-                          type="number"
-                          min="1"
-                          max="520"
-                          value={numberOfOccurrences}
-                          onChange={(event) =>
-                            setNumberOfOccurrences(event.target.value)
-                          }
-                          className="form-input"
-                        />
-                      </Field>
-                      <Field label="Recurrence ends" help="Optional">
-                        <input
-                          type="date"
-                          value={recurrenceEndDate}
-                          onChange={(event) =>
-                            setRecurrenceEndDate(event.target.value)
-                          }
-                          className="form-input"
-                        />
-                      </Field>
-                    </>
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))
                   )}
-
-                  <Field label="Event description" className="sm:col-span-2">
-                    <textarea
-                      value={eventDescription}
-                      onChange={(event) =>
-                        setEventDescription(event.target.value)
-                      }
-                      rows={3}
-                      className="form-input resize-y"
-                    />
-                  </Field>
-
-                  <label className="flex items-start gap-3 rounded-xl border border-[#dfe4df] bg-white p-4 text-sm text-[#52645e]">
-                    <input
-                      type="checkbox"
-                      checked={autoAddCheckinsToGroup}
-                      onChange={(event) =>
-                        setAutoAddCheckinsToGroup(event.target.checked)
-                      }
-                      className="mt-1 accent-[#167365]"
-                    />
-                    <span>
-                      <strong className="block text-[#263f38]">
-                        Add check-ins to the CCB group
-                      </strong>
-                      New participants are added to the mapped class.
-                    </span>
-                  </label>
-                  {!eventId ? (
-                    <div className="grid gap-2">
-                      <label className="flex items-center gap-2 rounded-xl border border-[#dfe4df] bg-white px-4 py-3 text-sm text-[#52645e]">
-                        <input
-                          type="checkbox"
-                          checked={attendanceReminder}
-                          onChange={(event) =>
-                            setAttendanceReminder(event.target.checked)
-                          }
-                          className="accent-[#167365]"
-                        />
-                        Attendance reminder
-                      </label>
-                      <label className="flex items-center gap-2 rounded-xl border border-[#dfe4df] bg-white px-4 py-3 text-sm text-[#52645e]">
-                        <input
-                          type="checkbox"
-                          checked={eventListed}
-                          onChange={(event) =>
-                            setEventListed(event.target.checked)
-                          }
-                          className="accent-[#167365]"
-                        />
-                        List event in CCB
-                      </label>
-                    </div>
-                  ) : null}
                 </div>
-              </details>
 
-              <div className="flex flex-col gap-3 border-t border-[#e8ebe6] pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-[#6b7a75]">
-                  Opening this meeting closes any previously open meeting for
-                  the class.
-                </p>
-                <button
-                  disabled={isPending || !mappings.length}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#167365] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.2)] transition hover:bg-[#0f6156] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Radio className="h-4 w-4" />
-                  )}
-                  Open meeting
-                </button>
-              </div>
-            </form>
+                <div className="mt-6 flex justify-end border-t border-[#e8ebe6] pt-5">
+                  <button
+                    disabled={isPending || scheduleLoading || !schedule.length}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#167365] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.2)] transition hover:bg-[#0f6156] disabled:opacity-60"
+                  >
+                    {isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    Save schedule
+                  </button>
+                </div>
+              </form>
+
+              <form
+                onSubmit={createSpecialMeeting}
+                className="surface-card overflow-hidden"
+              >
+                <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
+                  <div className="bg-[#f2ece0] p-6 sm:p-7">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f1b86b] text-[#493a22]">
+                      <CalendarPlus className="h-5 w-5" />
+                    </div>
+                    <h2 className="mt-5 text-2xl font-semibold tracking-[-0.025em] text-[#3d3426]">
+                      Special-case meeting
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-[#746956]">
+                      Add a one-time class date that falls outside the regular
+                      schedule. Nothing else about the class changes.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-7">
+                    <Field label="Date">
+                      <input
+                        type="date"
+                        value={specialDate}
+                        onChange={(event) => setSpecialDate(event.target.value)}
+                        required
+                        className="form-input"
+                      />
+                    </Field>
+                    <Field label="Optional meeting name">
+                      <input
+                        value={specialTitle}
+                        onChange={(event) => setSpecialTitle(event.target.value)}
+                        placeholder="Holiday gathering"
+                        className="form-input"
+                      />
+                    </Field>
+                    <Field label="Starts">
+                      <div className="relative">
+                        <Clock3 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#7b8a85]" />
+                        <input
+                          type="time"
+                          value={specialStart}
+                          onChange={(event) => setSpecialStart(event.target.value)}
+                          required
+                          className="form-input pl-10"
+                        />
+                      </div>
+                    </Field>
+                    <Field label="Ends">
+                      <input
+                        type="time"
+                        value={specialEnd}
+                        onChange={(event) => setSpecialEnd(event.target.value)}
+                        required
+                        className="form-input"
+                      />
+                    </Field>
+                    <Field label="Optional note" className="sm:col-span-2">
+                      <input
+                        value={specialNote}
+                        onChange={(event) => setSpecialNote(event.target.value)}
+                        placeholder="Why this meeting is different"
+                        className="form-input"
+                      />
+                    </Field>
+                    <div className="sm:col-span-2 flex justify-end">
+                      <button
+                        disabled={isPending}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#493f30] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#332c22] disabled:opacity-60"
+                      >
+                        {isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Plus className="h-4 w-4" />
+                        )}
+                        Add special meeting
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </>
           )}
 
           {message ? (
-            <div className="mt-5 flex items-start gap-3 rounded-xl bg-[#eef5f1] p-4 text-sm leading-6 text-[#34544b]">
+            <div className="flex items-start gap-3 rounded-2xl border border-[#cfe2db] bg-[#edf6f2] p-4 text-sm leading-6 text-[#34544b]">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#167365]" />
               <p>{message}</p>
             </div>
@@ -681,11 +634,13 @@ export function AdminSessionsManager() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#d9ddd7] bg-white p-5 shadow-[0_20px_60px_rgba(24,45,39,0.06)] sm:p-7">
+      <section className="surface-card p-5 sm:p-7">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#167365]">Meeting history</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-[#18332d]">
+            <p className="text-sm font-semibold text-[#167365]">
+              Attendance history
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#18332d]">
               {selectedMapping?.group_name ?? "Class meetings"}
             </h2>
           </div>
@@ -700,18 +655,12 @@ export function AdminSessionsManager() {
             selectedSessions.map((session) => (
               <article
                 key={session.id}
-                className="flex flex-col gap-4 rounded-2xl border border-[#e0e5e0] bg-[#fbfbf8] p-4 transition hover:border-[#c9d5cf] sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-4 rounded-2xl border border-[#e0e5e0] bg-[#fbfbf8] p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <div
-                    className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                      session.status === "active"
-                        ? "bg-[#dff3ec] text-[#147466]"
-                        : "bg-[#eceeea] text-[#72817c]"
-                    }`}
-                  >
-                    {session.status === "active" ? (
-                      <Radio className="h-5 w-5" />
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e5f2ed] text-[#147466]">
+                    {session.meeting_kind === "special" ? (
+                      <CalendarPlus className="h-5 w-5" />
                     ) : (
                       <CalendarDays className="h-5 w-5" />
                     )}
@@ -722,13 +671,17 @@ export function AdminSessionsManager() {
                         {session.title}
                       </h3>
                       <StatusBadge status={session.status} />
+                      {session.meeting_kind === "special" ? (
+                        <span className="rounded-full bg-[#fff1d8] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#876025]">
+                          Special
+                        </span>
+                      ) : null}
                     </div>
                     <p className="mt-1 text-sm text-[#667670]">
                       {formatMeetingDate(
                         session.occurrence_start_at,
                         session.occurrence_date
-                      )}{" "}
-                      · CCB event {session.ccb_event_id}
+                      )}
                     </p>
                     <Link
                       href={`/admin/sessions/${session.id}`}
@@ -755,7 +708,7 @@ export function AdminSessionsManager() {
                     {session.status === "active" ? (
                       <X className="h-3.5 w-3.5" />
                     ) : (
-                      <Play className="h-3.5 w-3.5" />
+                      <Radio className="h-3.5 w-3.5" />
                     )}
                     {session.status === "active" ? "Close" : "Reopen"}
                   </button>
@@ -776,11 +729,10 @@ export function AdminSessionsManager() {
             <div className="rounded-2xl border border-dashed border-[#cdd5d0] bg-[#fafaf7] p-10 text-center">
               <CalendarDays className="mx-auto h-8 w-8 text-[#8b9994]" />
               <p className="mt-3 font-semibold text-[#29453e]">
-                No meetings yet
+                No attendance records yet
               </p>
               <p className="mt-1 text-sm text-[#71807b]">
-                Open the first meeting when your class is ready to take
-                attendance.
+                Scheduled meetings appear here after the first check-in.
               </p>
             </div>
           )}
@@ -792,12 +744,10 @@ export function AdminSessionsManager() {
 
 function Field({
   label,
-  help,
   className,
   children
 }: {
   label: string;
-  help?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -805,11 +755,6 @@ function Field({
     <label className={className ?? "block"}>
       <span className="text-sm font-semibold text-[#38534c]">{label}</span>
       <div className="mt-1.5">{children}</div>
-      {help ? (
-        <span className="mt-1.5 block text-xs leading-5 text-[#7a8984]">
-          {help}
-        </span>
-      ) : null}
     </label>
   );
 }
@@ -826,7 +771,7 @@ function StatusBadge({ status }: { status: SessionRow["status"] }) {
     <span
       className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${style}`}
     >
-      {status === "active" ? "Open now" : status}
+      {status === "active" ? "Open" : status}
     </span>
   );
 }

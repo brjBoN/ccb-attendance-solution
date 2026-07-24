@@ -11,6 +11,7 @@ function session(
     checkin_opens_at: string | null;
     checkin_closes_at: string | null;
     created_at: string;
+    meeting_kind: string;
   }> = {}
 ) {
   return {
@@ -62,6 +63,21 @@ describe("selectCurrentClassSession", () => {
     );
 
     expect(result?.id).toBe("closest");
+  });
+
+  it("prefers a special-case meeting when it overlaps a regular schedule", () => {
+    const result = selectCurrentClassSession(
+      [
+        session("regular", { meeting_kind: "regular" }),
+        session("special", {
+          meeting_kind: "special",
+          occurrence_start_at: "2026-07-24T17:30:00.000Z"
+        })
+      ],
+      now
+    );
+
+    expect(result?.id).toBe("special");
   });
 
   it("does not return draft, closed, cancelled, future, or expired meetings", () => {

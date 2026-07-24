@@ -1,6 +1,7 @@
 export type ClassSessionCandidate = {
   id: string;
   status: string;
+  meeting_kind?: string;
   occurrence_start_at: string | null;
   checkin_opens_at: string | null;
   checkin_closes_at: string | null;
@@ -30,6 +31,10 @@ export function selectCurrentClassSession<T extends ClassSessionCandidate>(
   });
 
   current.sort((left, right) => {
+    const leftIsSpecial = left.meeting_kind === "special";
+    const rightIsSpecial = right.meeting_kind === "special";
+    if (leftIsSpecial !== rightIsSpecial) return leftIsSpecial ? -1 : 1;
+
     const leftDistance = left.occurrence_start_at
       ? Math.abs(new Date(left.occurrence_start_at).getTime() - nowMs)
       : Number.MAX_SAFE_INTEGER;
