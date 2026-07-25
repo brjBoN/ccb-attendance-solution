@@ -1,5 +1,6 @@
 import "server-only";
 
+import { ensureLeaderAttendanceForSession } from "@/lib/attendance/leader-attendance";
 import { selectCurrentClassSession } from "@/lib/checkin/class-session-selection";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { InternalCheckinSessionResult } from "@/lib/checkin/types";
@@ -25,6 +26,7 @@ type ClassMapping = {
   group_name: string;
   ccb_event_grouping_id: string | null;
   auto_add_checkins_to_group: boolean | null;
+  ccb_main_leader_id: string | null;
   enabled: boolean;
 };
 
@@ -46,7 +48,7 @@ export async function getInternalCheckinSessionByClassSlug(
   const { data: mapping, error: mappingError } = await supabase
     .from("ccb_group_mappings")
     .select(
-      "ccb_group_id,group_name,ccb_event_grouping_id,auto_add_checkins_to_group,enabled"
+      "ccb_group_id,group_name,ccb_event_grouping_id,auto_add_checkins_to_group,ccb_main_leader_id,enabled"
     )
     .eq("public_checkin_slug", slug)
     .is("deleted_at", null)
@@ -146,6 +148,12 @@ export async function getInternalCheckinSessionByClassSlug(
   const options = asObject(selected.options);
   const autoAddFromOptions = options.auto_add_checkins_to_group;
   const groupingFromOptions = options.event_grouping_id;
+
+  await ensureLeaderAttendanceForSession({
+    sessionId: selected.id,
+    ccbGroupId: classMapping.ccb_group_id,
+    leaderIndividualId: classMapping.ccb_main_leader_id
+  }).catch(() => null);
 
   return {
     ok: true,

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { ensureLeaderAttendanceForSession } from "@/lib/attendance/leader-attendance";
+import { buildAttendanceRoster } from "@/lib/attendance/roster";
 import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -20,6 +22,7 @@ export async function syncAttendanceCheckin(checkinId: string): Promise<Attendan
       ccb_individual_id,
       checkin_sessions (
         id,
+        ccb_group_id,
         ccb_event_id,
         occurrence_date,
         occurrence_start_at,
@@ -47,6 +50,11 @@ export async function syncAttendanceCheckin(checkinId: string): Promise<Attendan
   const client = createCcbClient();
 
   try {
+    const leaderAttendance = await ensureLeaderAttendanceForSession({
+      sessionId: session.id,
+      ccbGroupId: session.ccb_group_id
+    });
+
     const existing = await client.getAttendanceProfile({
       eventId: session.ccb_event_id,
       occurrence
@@ -60,11 +68,11 @@ export async function syncAttendanceCheckin(checkinId: string): Promise<Attendan
 
     if (localError) throw new Error(localError.message);
 
-    const mergedIds = [
-      ...existing.attendees.map((person) => person.id),
-      ...(localRows ?? []).map((row) => row.ccb_individual_id).filter(Boolean)
-    ];
-    const uniqueIds = [...new Set(mergedIds.map(String))];
+    const uniqueIds = buildAttendanceRoster({
+      existingCcbIds: existing.attendees.map((person) => person.id),
+      localCcbIds: (localRows ?? []).map((row) => row.ccb_individual_id),
+      leaderCcbId: leaderAttendance?.ccbIndividualId
+    });
 
     await client.createEventAttendance({
       eventId: session.ccb_event_id,
