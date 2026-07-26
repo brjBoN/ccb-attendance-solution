@@ -45,13 +45,6 @@ export default async function PublicCheckInPage({
             <p className="mt-2 text-sm leading-6 text-[#667670]">
               {result.message}
             </p>
-            {result.reason === "no_meeting" ||
-            result.reason === "not_open_yet" ? (
-              <div className="mt-5 rounded-2xl bg-[#eef5f1] p-4 text-sm leading-6 text-[#456159]">
-                This is the permanent class link, so there is no need to find a
-                new QR code. Scan it again when the meeting begins.
-              </div>
-            ) : null}
           </div>
         </div>
       </main>

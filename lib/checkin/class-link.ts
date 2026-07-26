@@ -140,8 +140,8 @@ export async function getInternalCheckinSessionByClassSlug(
       reason: nextSession ? "not_open_yet" : "no_meeting",
       groupName: classMapping.group_name,
       message: nextSession
-        ? "You have the right class QR code. Check-in has not opened for the next meeting yet."
-        : "You have the right class QR code. There is no meeting open for check-in right now."
+        ? "Check-in has not opened for the next meeting yet."
+        : "There is no meeting open for check-in right now."
     };
   }
 

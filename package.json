@@ -1,6 +1,6 @@
 {
   "name": "ccb-qr-attendance",
-  "version": "1.4.0-existing-event-adoption",
+  "version": "1.4.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
