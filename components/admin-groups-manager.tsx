@@ -13,7 +13,7 @@ type CcbGroupResult = {
   campus: string | null;
   leaderName: string | null;
   mainLeaderId: string | null;
-  matchReason: "Class name" | "Leader" | "Class type" | "Campus" | "Description";
+  matchReason: "Group name" | "Leader" | "Group type" | "Campus" | "Description";
 };
 
 type GroupMapping = {
@@ -123,7 +123,7 @@ export function AdminGroupsManager({
   function searchGroups(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      setMessage("Searching classes...");
+      setMessage("Searching groups...");
       const response = await fetch(`/api/admin/ccb/groups/search?q=${encodeURIComponent(query)}&limit=75`);
       const data = await response.json();
       if (!response.ok) {
@@ -140,7 +140,7 @@ export function AdminGroupsManager({
 
     startTransition(async () => {
       setDetectingGroupId(group.id);
-      setMessage(`Checking CCB for an existing attendance event for ${group.name ?? "this class"}...`);
+      setMessage(`Checking CCB for an existing attendance event for ${group.name ?? "this group"}...`);
       try {
         const response = await fetch(`/api/admin/ccb/groups/${group.id}/events`);
         const data = await response.json();
@@ -163,8 +163,8 @@ export function AdminGroupsManager({
         });
         setMessage(
           firstEvent
-            ? `Found ${events.length} existing CCB attendance event${events.length === 1 ? "" : "s"} for this class.`
-            : "No existing CCB attendance event was found for this class."
+            ? `Found ${events.length} existing CCB attendance event${events.length === 1 ? "" : "s"} for this group.`
+            : "No existing CCB attendance event was found for this group."
         );
       } catch {
         setMessage("Could not reach the event detector. Nothing was changed; please try again.");
@@ -216,12 +216,12 @@ export function AdminGroupsManager({
         setEnableReview(null);
         setMessage(
           selectedEvent
-            ? `The existing CCB event “${selectedEvent.name ?? selectedEvent.id}” is connected. Next, save the class’s regular meeting times on the Meetings page.`
-            : `QR check-in is enabled for ${data.mapping.group_name}. Its one attendance event will be created when the class schedule is saved.`
+            ? `The existing CCB event “${selectedEvent.name ?? selectedEvent.id}” is connected. Next, save the group’s regular meeting times on the Meetings page.`
+            : `QR check-in is enabled for ${data.mapping.group_name}. Its one attendance event will be created when the group schedule is saved.`
         );
         await loadMappings();
       } catch {
-        setMessage("Could not finish enabling this class. Nothing was changed; please try again.");
+        setMessage("Could not finish enabling this group. Nothing was changed; please try again.");
       }
     });
   }
@@ -332,13 +332,13 @@ ${expected}`
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-950">Search CCB groups</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Search by class name. Leader, type, campus, and description are used as secondary matches, and class-name matches always appear first.
+          Search by group name. Leader, type, campus, and description are used as secondary matches, and group-name matches always appear first.
         </p>
 
         <form onSubmit={searchGroups} className="mt-5 flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search class names, e.g. Discover..." className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 outline-none ring-brand-500 focus:ring-2" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search group names, e.g. Discover..." className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 outline-none ring-brand-500 focus:ring-2" />
           </div>
           <button disabled={isPending} className="rounded-xl bg-brand-600 px-5 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-60">Search</button>
         </form>
@@ -375,13 +375,13 @@ ${expected}`
                                   ? "QR check-in disabled"
                                   : existing.ccb_event_id
                                     ? "QR check-in enabled"
-                                    : "QR setup needs class times"
+                                    : "QR setup needs group times"
                               }
                             </p>
                             <p className="mt-1 text-xs leading-5 text-cyan-800">
                               {existing.ccb_event_id
                                 ? `Using existing CCB attendance event ${existing.ccb_event_id}.`
-                                : "The class attendance event will be created when its schedule is saved."}
+                                : "The group attendance event will be created when its schedule is saved."}
                             </p>
                           </div>
 
@@ -399,7 +399,7 @@ ${expected}`
                         </>
                       ) : (
                         <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm leading-6 text-brand-900">
-                          The app will check this class for an existing CCB attendance event before anything is enabled.
+                          The app will check this group for an existing CCB attendance event before anything is enabled.
                         </div>
                       )}
 
@@ -425,7 +425,7 @@ ${expected}`
                             <Save className="h-4 w-4" />
                           )}
                           {existing?.ccb_event_id
-                            ? "Update class"
+                            ? "Update group"
                             : detectingGroupId === group.id
                               ? "Checking CCB..."
                               : existing
@@ -437,7 +437,7 @@ ${expected}`
                         </Link>
                         {existing ? (
                           <Link href="/admin/sessions" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                            <CalendarDays className="h-4 w-4" /> Set class times
+                            <CalendarDays className="h-4 w-4" /> Set group times
                           </Link>
                         ) : null}
                       </div>
@@ -451,8 +451,8 @@ ${expected}`
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Enabled classes</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Each enabled class has one permanent QR code. Main-leader linkage controls who may open its meetings.</p>
+        <h2 className="text-lg font-semibold text-slate-950">Enabled groups</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Each enabled group has one permanent QR code. Main-leader linkage controls who may open its meetings.</p>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full text-left text-sm">
@@ -575,7 +575,7 @@ ${expected}`
             {enableReview.events.length ? (
               <div className="mt-6 space-y-3">
                 <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm leading-6 text-cyan-950">
-                  CCB already has {enableReview.events.length === 1 ? "an attendance event" : "attendance events"} linked to this exact class. Reusing one keeps attendance together and prevents a duplicate event.
+                  CCB already has {enableReview.events.length === 1 ? "an attendance event" : "attendance events"} linked to this exact group. Reusing one keeps attendance together and prevents a duplicate event.
                 </div>
 
                 <label className={`block cursor-pointer rounded-2xl border p-4 transition ${
@@ -644,7 +644,7 @@ ${expected}`
               </div>
             ) : (
               <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950">
-                Nothing was changed in CCB. The app can enable the class now and create its single attendance event only after the regular class schedule is saved.
+                Nothing was changed in CCB. The app can enable the group now and create its single attendance event only after the regular group schedule is saved.
               </div>
             )}
 
@@ -699,7 +699,7 @@ ${expected}`
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
                 {enableReview.choice === "existing"
                   ? "Use existing event and enable"
-                  : "Enable class"}
+                  : "Enable group"}
               </button>
             </div>
           </div>
@@ -747,6 +747,6 @@ function groupResultFromMapping(mapping: GroupMapping): CcbGroupResult {
     campus: null,
     leaderName: null,
     mainLeaderId: mapping.ccb_main_leader_id,
-    matchReason: "Class name"
+    matchReason: "Group name"
   };
 }

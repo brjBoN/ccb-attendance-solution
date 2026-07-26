@@ -24,7 +24,7 @@ export type ExistingGroupEvent = {
 };
 
 export class GroupEventDetectionUnavailableError extends Error {
-  constructor(message = "CCB could not safely verify this class's existing attendance events.") {
+  constructor(message = "CCB could not safely verify this group's existing attendance events.") {
     super(message);
     this.name = "GroupEventDetectionUnavailableError";
   }
@@ -45,7 +45,7 @@ export async function findExistingGroupEvents(groupId: string) {
   const calendarUrl = readValidatedCalendarUrl(group);
   if (!calendarUrl) {
     throw new GroupEventDetectionUnavailableError(
-      "CCB did not provide a verifiable calendar for this class. Nothing was changed."
+      "CCB did not provide a verifiable calendar for this group. Nothing was changed."
     );
   }
 
@@ -56,7 +56,7 @@ export async function findExistingGroupEvents(groupId: string) {
     !upperCalendar.includes("END:VCALENDAR")
   ) {
     throw new GroupEventDetectionUnavailableError(
-      "CCB returned an invalid class calendar. Nothing was changed."
+      "CCB returned an invalid group calendar. Nothing was changed."
     );
   }
   const references = parseCcbGroupCalendar(calendar);
@@ -75,7 +75,7 @@ export async function findExistingGroupEvents(groupId: string) {
       if (attemptedIds.has(eventId)) continue;
       if (profileLookups >= MAX_EVENT_PROFILE_LOOKUPS) {
         throw new GroupEventDetectionUnavailableError(
-          "This class calendar has too many event records to verify safely. Nothing was changed."
+          "This group calendar has too many event records to verify safely. Nothing was changed."
         );
       }
       attemptedIds.add(eventId);

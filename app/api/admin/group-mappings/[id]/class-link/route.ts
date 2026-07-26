@@ -27,21 +27,21 @@ export async function GET(
 
   if (error || !mapping) {
     return NextResponse.json(
-      { error: error?.message ?? "Class mapping not found." },
+      { error: error?.message ?? "Group mapping not found." },
       { status: 404 }
     );
   }
 
   if (!canManageSessionForGroup(admin, mapping)) {
     return NextResponse.json(
-      { error: "Only this class's main leader or a full administrator can view its QR code." },
+      { error: "Only this group's main leader or a full administrator can view its QR code." },
       { status: 403 }
     );
   }
 
   if (!mapping.public_checkin_slug) {
     return NextResponse.json(
-      { error: "The permanent class link is not ready. Run Supabase migration 0008, then try again." },
+      { error: "The permanent group link is not ready. Run Supabase migration 0008, then try again." },
       { status: 409 }
     );
   }

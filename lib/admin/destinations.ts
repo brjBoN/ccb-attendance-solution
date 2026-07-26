@@ -27,7 +27,7 @@ export const ADMIN_DESTINATIONS: AdminDestination[] = [
   {
     key: "schedules",
     href: "/admin/sessions",
-    label: "Class schedules",
+    label: "Group schedules",
     shortLabel: "Schedules",
     description: "Change regular meeting times or add a one-time exception.",
     access: "all"
@@ -51,9 +51,9 @@ export const ADMIN_DESTINATIONS: AdminDestination[] = [
   {
     key: "classes",
     href: "/admin/groups",
-    label: "Classes",
-    shortLabel: "Classes",
-    description: "Connect CCB groups and choose which classes use check-in.",
+    label: "Groups",
+    shortLabel: "Groups",
+    description: "Connect CCB groups and choose which groups use check-in.",
     access: "group_creator"
   },
   {
@@ -69,7 +69,7 @@ export const ADMIN_DESTINATIONS: AdminDestination[] = [
     href: "/admin/checklist",
     label: "CCB checklist",
     shortLabel: "Checklist",
-    description: "Finish the class settings that must be completed in CCB.",
+    description: "Finish the group settings that must be completed in CCB.",
     access: "full_admin"
   },
   {

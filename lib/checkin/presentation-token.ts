@@ -8,7 +8,7 @@ export function signClassPresentationToken(
   secret: string
 ) {
   if (!UUID_PATTERN.test(publicCheckinSlug)) {
-    throw new Error("Cannot sign an invalid class check-in slug.");
+    throw new Error("Cannot sign an invalid group check-in slug.");
   }
 
   const signature = crypto

@@ -56,7 +56,7 @@ export async function ensureClassAttendanceEvent(
 
   if (!mapping.ccb_event_grouping_id) {
     throw new Error(
-      "This class needs a CCB Attendance Grouping before its schedule can be saved. Ask an administrator to set it on the Classes page."
+      "This group needs a CCB Attendance Grouping before its schedule can be saved. Ask an administrator to set it on the Groups page."
     );
   }
 
@@ -92,11 +92,11 @@ export async function ensureClassAttendanceEvent(
 
   const detected = await findExistingGroupEvents(mapping.ccb_group_id);
   if (!detected) {
-    throw new Error("The CCB class could not be verified. No attendance event was created.");
+    throw new Error("The CCB group could not be verified. No attendance event was created.");
   }
   if (detected.events.length) {
     throw new Error(
-      "CCB already has an attendance event for this class. No duplicate was created. Connect the existing event from the Classes page first."
+      "CCB already has an attendance event for this group. No duplicate was created. Connect the existing event from the Groups page first."
     );
   }
 
@@ -119,7 +119,7 @@ export async function ensureClassAttendanceEvent(
       endDate: next.endDateTime,
       name: `${mapping.group_name} Attendance`,
       description:
-        "Attendance event managed by the Heritage Church class check-in app.",
+        "Attendance event managed by the Heritage Church group check-in app.",
       eventGroupingId: mapping.ccb_event_grouping_id,
       recurrenceType: "daily",
       recurrenceFrequency: 1,
@@ -180,7 +180,7 @@ export async function ensureClassAttendanceEvent(
   if (error) throw new Error(error.message);
   if (!updatedMapping) {
     throw new Error(
-      "CCB created the event, but the class changed before it could be connected. No retry was attempted."
+      "CCB created the event, but the group changed before it could be connected. No retry was attempted."
     );
   }
 

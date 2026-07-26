@@ -43,7 +43,7 @@ export async function listPublicTeacherClasses(): Promise<TeacherClass[]> {
     .order("group_name", { ascending: true });
 
   const { data, error } = await query;
-  if (error) throw new Error(`Could not load check-in classes: ${error.message}`);
+  if (error) throw new Error(`Could not load check-in groups: ${error.message}`);
 
   const mappings = ((data ?? []) as TeacherMappingRow[]).filter(
     (mapping) => Boolean(mapping.public_checkin_slug)
@@ -64,7 +64,7 @@ export async function listPublicTeacherClasses(): Promise<TeacherClass[]> {
     .order("start_time", { ascending: true });
 
   if (scheduleError) {
-    throw new Error(`Could not load class schedules: ${scheduleError.message}`);
+    throw new Error(`Could not load group schedules: ${scheduleError.message}`);
   }
 
   const schedulesByMapping = new Map<string, TeacherScheduleRow[]>();

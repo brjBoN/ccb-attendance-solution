@@ -34,7 +34,7 @@ const updateSchema = z.object({
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["ccbEventId"],
-      message: "Do not include an event ID when creating the class event later."
+      message: "Do not include an event ID when creating the group event later."
     });
   }
 });
@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (parsed.data.eventChoice === "create_later") {
     if (current.ccb_event_id) {
       return NextResponse.json(
-        { error: "This class is already connected to a CCB attendance event." },
+        { error: "This group is already connected to a CCB attendance event." },
         { status: 409 }
       );
     }
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         return NextResponse.json(
           {
             error:
-              "CCB already has an attendance event for this class. Refresh and choose the existing event instead."
+              "CCB already has an attendance event for this group. Refresh and choose the existing event instead."
           },
           { status: 409 }
         );
@@ -92,7 +92,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   ) {
     if (!parsed.data.ccbEventId) {
       return NextResponse.json(
-        { error: "A linked CCB event cannot be removed from the general class update." },
+        { error: "A linked CCB event cannot be removed from the general group update." },
         { status: 400 }
       );
     }
@@ -111,14 +111,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json(
         {
           error:
-            "That event is not in this class’s current CCB calendar. Refresh and choose again."
+            "That event is not in this group’s current CCB calendar. Refresh and choose again."
         },
         { status: 409 }
       );
     }
     if (event.groupId !== current.ccb_group_id) {
       return NextResponse.json(
-        { error: "That CCB event belongs to a different class and cannot be attached." },
+        { error: "That CCB event belongs to a different group and cannot be attached." },
         { status: 409 }
       );
     }
@@ -218,13 +218,13 @@ function ccbFailureResponse(error: unknown) {
         error:
           error.status === 429
             ? "CCB is temporarily limiting requests. Nothing was changed; please try again in a minute."
-            : "CCB could not validate the class attendance event. Nothing was changed."
+            : "CCB could not validate the group attendance event. Nothing was changed."
       },
       { status: error.status === 429 ? 503 : 502 }
     );
   }
   return NextResponse.json(
-    { error: "CCB could not validate the class attendance event. Nothing was changed." },
+    { error: "CCB could not validate the group attendance event. Nothing was changed." },
     { status: 502 }
   );
 }

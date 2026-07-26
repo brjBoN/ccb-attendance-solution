@@ -6,7 +6,7 @@ import { requireGroupCreator } from "@/lib/auth/admin";
 import { isFullAdminRole } from "@/lib/auth/permissions";
 
 export const metadata: Metadata = {
-  title: "Classes"
+  title: "Groups"
 };
 
 export default async function AdminGroupsPage() {
@@ -23,10 +23,10 @@ export default async function AdminGroupsPage() {
             CCB groups
           </div>
           <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-[#0b1f3a] sm:text-5xl">
-            Classes
+            Groups
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[#5f7187]">
-            Connect CCB groups to class check-in. Each enabled class receives
+            Connect CCB groups to QR check-in. Each enabled group receives
             one permanent QR code for all of its meetings.
           </p>
         </div>

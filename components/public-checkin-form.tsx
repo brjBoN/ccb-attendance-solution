@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import {
   readSavedCheckinName,
-  removeSavedCheckinName,
   savedNameStorageKey,
   type SavedCheckinName,
   writeSavedCheckinName
@@ -452,36 +451,6 @@ export function PublicCheckinForm({
     });
   }
 
-  function forgetSavedName(resetForm: boolean) {
-    searchRequestRef.current?.abort();
-    searchRequestRef.current = null;
-    searchSequenceRef.current += 1;
-
-    const storage = getBrowserStorage();
-    if (storage) removeSavedCheckinName(storage, token);
-
-    setSavedName(null);
-    setUsingSavedName(false);
-    setProfileUpdateTicket(null);
-    setShowProfileUpdateForm(false);
-    setProfileUpdateEmail("");
-    setProfileUpdateMobilePhone("");
-    setProfileUpdateHomePhone("");
-    setProfileUpdateMessage(null);
-    setProfileUpdateSent(false);
-
-    if (resetForm) {
-      setMode("search");
-      setFirstName("");
-      setLastName("");
-      setResults([]);
-      setSelected(null);
-      setMessage("Saved name cleared. Enter the name you want to use.");
-      setFinalMessage(null);
-      setWasSuccessful(false);
-    }
-  }
-
   function submitGuest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -533,16 +502,7 @@ export function PublicCheckinForm({
         ) : null}
         {mode === "search" && savedName ? (
           <div className="mt-4 rounded-xl border border-cyan-200 bg-white/70 px-3 py-2.5 text-xs leading-5 text-cyan-900">
-            <p>
-              Your name was saved for faster group check-in next time.
-            </p>
-            <button
-              type="button"
-              onClick={() => forgetSavedName(false)}
-              className="mt-1 font-bold text-[#0754d6] underline underline-offset-2"
-            >
-              Forget saved name
-            </button>
+            <p>Your name was saved for faster group check-in next time.</p>
           </div>
         ) : null}
 
@@ -764,18 +724,12 @@ export function PublicCheckinForm({
   return (
     <div className="mt-6">
       {savedName && usingSavedName ? (
-        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#b9d6ff] bg-[#eef6ff] p-4 text-sm leading-6 text-[#294c70] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 rounded-2xl border border-[#b9d6ff] bg-[#eef6ff] p-4 text-sm leading-6 text-[#294c70]">
           <p>
             <strong className="text-[#173e68]">Welcome back.</strong>{" "}
-            Using the name saved for this group.
+            Using the name saved for this group. Edit the name fields below if
+            needed.
           </p>
-          <button
-            type="button"
-            onClick={() => forgetSavedName(true)}
-            className="shrink-0 rounded-xl border border-[#b9d6ff] bg-white px-3 py-2 text-xs font-bold text-[#0754d6]"
-          >
-            Not you? Forget this name
-          </button>
         </div>
       ) : null}
 

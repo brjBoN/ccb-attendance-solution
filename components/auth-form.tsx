@@ -64,7 +64,7 @@ export function AuthForm({
         </h1>
         <p className="mt-2 text-sm leading-6 text-[#66798d]">
           {mode === "signin"
-            ? "Sign in to change class times, review guests, and manage attendance."
+            ? "Sign in to change group times, review guests, and manage attendance."
             : "Create a sign-in, then ask an administrator to grant access."}
         </p>
       </div>

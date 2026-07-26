@@ -62,7 +62,7 @@ export default async function AdminDashboardPage() {
       {needsCcbLink ? (
         <div className="mt-6 rounded-2xl border border-[#b9d6ff] bg-[#eaf4ff] p-4 text-sm leading-6 text-[#28415f]">
           Your account needs to be connected to your CCB profile before your
-          class schedules and attendance activity can appear.
+          group schedules and attendance activity can appear.
         </div>
       ) : null}
 
@@ -77,13 +77,13 @@ export default async function AdminDashboardPage() {
             </span>
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.13em] text-[#74d9f1]">
-                Teacher check-in
+                Leader check-in
               </p>
               <h2 className="mt-1 text-xl font-semibold sm:text-2xl">
-                Show a class QR code
+                Show a group QR code
               </h2>
               <p className="mt-1 hidden text-sm text-white/60 sm:block">
-                Open the public class finder and choose a class.
+                Open the public group finder and choose a group.
               </p>
             </div>
           </div>

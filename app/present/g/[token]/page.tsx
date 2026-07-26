@@ -8,7 +8,7 @@ import { getClassPresentation } from "@/lib/checkin/class-display";
 
 export const metadata: Metadata = {
   title: "Group Check-In Display",
-  description: "Teacher presentation view for Heritage Church group check-in.",
+  description: "Leader presentation view for Heritage Church group check-in.",
   robots: "noindex, nofollow, noarchive",
   referrer: "no-referrer"
 };

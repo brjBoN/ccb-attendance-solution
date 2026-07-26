@@ -111,21 +111,6 @@ export function writeSavedCheckinName(
   }
 }
 
-export function removeSavedCheckinName(
-  storage: StorageLike,
-  token: string
-) {
-  const key = savedNameStorageKey(token);
-  if (!key) return false;
-
-  try {
-    storage.removeItem(key);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function normalizeName(value: string) {
   const normalized = value
     .replace(/[\u0000-\u001f\u007f]/g, " ")

@@ -43,11 +43,11 @@ export function TeacherPresentationControls({
       {backHref ? (
         <Link
           href={backHref}
-          aria-label="Back to classes"
+          aria-label="Back to groups"
           className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 text-sm font-semibold text-white/85 backdrop-blur transition hover:bg-white/15 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Classes</span>
+          <span className="hidden sm:inline">Groups</span>
         </Link>
       ) : null}
       {isSupported ? (

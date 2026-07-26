@@ -16,7 +16,7 @@ export default function PresentationNotFound() {
           This group display is unavailable
         </h1>
         <p className="mt-3 text-sm leading-6 text-white/60 sm:text-base">
-          Ask the group administrator for the current teacher display link.
+          Ask the group administrator for the current leader display link.
         </p>
       </div>
     </main>

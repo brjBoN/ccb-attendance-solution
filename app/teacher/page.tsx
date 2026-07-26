@@ -47,7 +47,7 @@ export default async function TeacherClassesPage() {
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-7 sm:px-7 sm:pt-10">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0866ff]">
-            Teacher check-in
+            Leader check-in
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#0b1f3a] sm:text-5xl">
             Choose your group

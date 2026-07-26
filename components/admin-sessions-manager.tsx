@@ -162,7 +162,7 @@ export function AdminSessionsManager() {
     if (latestMappingIdRef.current !== mappingId) return;
     setClassLinkLoading(false);
     if (!response.ok) {
-      setMessage(data.error ?? "Could not load the class QR code.");
+      setMessage(data.error ?? "Could not load the group QR code.");
       return;
     }
     setClassLink(data.classLink);
@@ -181,7 +181,7 @@ export function AdminSessionsManager() {
     if (!response.ok) {
       setSchedule([]);
       setSavedSchedule([]);
-      setMessage(data.error ?? "Could not load the class schedule.");
+      setMessage(data.error ?? "Could not load the group schedule.");
       return;
     }
 
@@ -258,7 +258,7 @@ export function AdminSessionsManager() {
     if (!selectedMappingId || !schedule.length) return;
 
     startTransition(async () => {
-      setMessage("Saving the class schedule...");
+      setMessage("Saving the group schedule...");
       const response = await fetch(
         `/api/admin/group-mappings/${selectedMappingId}/schedule`,
         {
@@ -269,14 +269,14 @@ export function AdminSessionsManager() {
       );
       const data = await response.json();
       if (!response.ok) {
-        setMessage(data.error ?? "Could not save the class schedule.");
+        setMessage(data.error ?? "Could not save the group schedule.");
         return;
       }
 
       setMessage(
         data.eventCreated
-          ? "Schedule saved. The class attendance event was created in CCB automatically."
-          : "Schedule saved. Check-in will open automatically around each class time."
+          ? "Schedule saved. The group attendance event was created in CCB automatically."
+          : "Schedule saved. Check-in will open automatically around each group time."
       );
       await Promise.all([
         loadMappings(),
@@ -310,7 +310,7 @@ export function AdminSessionsManager() {
       }
 
       setMessage(
-        "Special meeting added. It will use the class's normal check-in code."
+        "Special meeting added. It will use the group's normal check-in code."
       );
       setSpecialTitle("");
       setSpecialNote("");
@@ -347,7 +347,7 @@ export function AdminSessionsManager() {
   async function copyPresentationLink() {
     if (!classLink) return;
     await navigator.clipboard.writeText(classLink.presentationUrl);
-    setMessage("Teacher display link copied.");
+    setMessage("Leader display link copied.");
   }
 
   return (
@@ -356,17 +356,17 @@ export function AdminSessionsManager() {
         <aside className="overflow-hidden rounded-[28px] bg-[#071f3f] text-white shadow-[0_24px_70px_rgba(7,31,63,0.14)] xl:sticky xl:top-24 xl:self-start">
           <div className="border-b border-white/10 p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#74d9f1]">
-              Class check-in code
+              Group check-in code
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em]">
-              {selectedMapping?.group_name ?? "Choose a class"}
+              {selectedMapping?.group_name ?? "Choose a group"}
             </h2>
           </div>
 
           <div className="p-6">
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
-                Class
+                Group
               </span>
               <select
                 value={selectedMappingId}
@@ -389,7 +389,7 @@ export function AdminSessionsManager() {
               {classLinkLoading ? (
                 <div className="text-center text-[#51677f]">
                   <Loader2 className="mx-auto h-7 w-7 animate-spin" />
-                  <p className="mt-3 text-sm font-medium">Loading class code</p>
+                  <p className="mt-3 text-sm font-medium">Loading group code</p>
                 </div>
               ) : classLink ? (
                 <Image
@@ -405,7 +405,7 @@ export function AdminSessionsManager() {
                 <div className="text-center text-[#6a7c91]">
                   <QrCode className="mx-auto h-10 w-10" />
                   <p className="mt-3 text-sm font-medium">
-                    Choose a class to view its code
+                    Choose a group to view its code
                   </p>
                 </div>
               )}
@@ -446,7 +446,7 @@ export function AdminSessionsManager() {
                           {window.dayName}
                         </p>
                         <p className="mt-1 text-xs leading-5 text-white/65">
-                          Class: {window.meetingTime}
+                          Meeting: {window.meetingTime}
                         </p>
                         <p className="text-xs leading-5 text-[#74d9f1]">
                           Check-in open: {window.attendanceWindow}
@@ -474,7 +474,7 @@ export function AdminSessionsManager() {
                 </button>
                 <a
                   href={classLink.qrDataUrl}
-                  download={`${classLink.className.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-class-qr.png`}
+                  download={`${classLink.className.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-group-qr.png`}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
                   <Download className="h-4 w-4" />
@@ -486,7 +486,7 @@ export function AdminSessionsManager() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#74d9f1]/35 bg-[#74d9f1]/10 px-3 py-2.5 text-sm font-semibold text-[#c8f2e6] transition hover:bg-[#74d9f1]/15"
                 >
                   <Link2 className="h-4 w-4" />
-                  Copy teacher link
+                  Copy leader link
                 </button>
                 <a
                   href={classLink.presentationUrl}
@@ -516,16 +516,16 @@ export function AdminSessionsManager() {
             <div className="surface-card p-10 text-center">
               <QrCode className="mx-auto h-10 w-10 text-[#7a8b9d]" />
               <h2 className="mt-4 text-xl font-semibold text-[#0b1f3a]">
-                No classes are enabled yet
+                No groups are enabled yet
               </h2>
               <p className="mt-2 text-sm text-[#66798d]">
-                Add a CCB class before setting attendance times.
+                Add a CCB group before setting attendance times.
               </p>
               <Link
                 href="/admin/groups"
                 className="mt-5 inline-flex rounded-xl bg-[#0866ff] px-4 py-2.5 text-sm font-semibold text-white"
               >
-                Manage classes
+                Manage groups
               </Link>
             </div>
           ) : (
@@ -538,11 +538,11 @@ export function AdminSessionsManager() {
                       Regular schedule
                     </div>
                     <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-[#0b1f3a]">
-                      When does this class meet?
+                      When does this group meet?
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66798d]">
                       Add every usual day and time. Check-in opens 30 minutes
-                      before class and closes 30 minutes after it ends.
+                      before the group meets and closes 30 minutes after it ends.
                     </p>
                   </div>
                   <button
@@ -657,8 +657,8 @@ export function AdminSessionsManager() {
                       Special-case meeting
                     </h2>
                     <p className="mt-3 text-sm leading-6 text-[#5f7187]">
-                      Add a one-time class date that falls outside the regular
-                      schedule. Nothing else about the class changes.
+                      Add a one-time group date that falls outside the regular
+                      schedule. Nothing else about the group changes.
                     </p>
                   </div>
 
@@ -744,7 +744,7 @@ export function AdminSessionsManager() {
               Attendance history
             </p>
             <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#0b1f3a]">
-              {selectedMapping?.group_name ?? "Class meetings"}
+              {selectedMapping?.group_name ?? "Group meetings"}
             </h2>
           </div>
           <p className="text-sm text-[#6a7c91]">

@@ -2,7 +2,7 @@ import type { CcbGroup } from "@/lib/ccb/types";
 
 export type RankedCcbGroup = {
   group: CcbGroup;
-  matchReason: "Class name" | "Leader" | "Class type" | "Campus" | "Description";
+  matchReason: "Group name" | "Leader" | "Group type" | "Campus" | "Description";
   score: number;
 };
 
@@ -13,7 +13,7 @@ export function rankCcbGroups(groups: CcbGroup[], rawQuery: string) {
     return groups
       .map((group) => ({
         group,
-        matchReason: "Class name" as const,
+        matchReason: "Group name" as const,
         score: 0
       }))
       .sort(compareRankedGroups);
@@ -29,16 +29,16 @@ export function rankCcbGroups(groups: CcbGroup[], rawQuery: string) {
 
 function rankGroup(group: CcbGroup, query: string): RankedCcbGroup | null {
   const name = normalize(group.name);
-  if (name === query) return { group, matchReason: "Class name", score: 0 };
-  if (name.startsWith(query)) return { group, matchReason: "Class name", score: 1 };
+  if (name === query) return { group, matchReason: "Group name", score: 0 };
+  if (name.startsWith(query)) return { group, matchReason: "Group name", score: 1 };
   if (name.split(/\s+/).some((word) => word.startsWith(query))) {
-    return { group, matchReason: "Class name", score: 2 };
+    return { group, matchReason: "Group name", score: 2 };
   }
-  if (name.includes(query)) return { group, matchReason: "Class name", score: 3 };
+  if (name.includes(query)) return { group, matchReason: "Group name", score: 3 };
 
   const secondary = [
     ["Leader", group.leaderName, 10],
-    ["Class type", group.groupType, 11],
+    ["Group type", group.groupType, 11],
     ["Campus", group.campus, 12],
     ["Description", group.description, 13]
   ] as const;

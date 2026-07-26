@@ -39,7 +39,7 @@ function group(id: string, name: string, patch: Partial<CcbGroup> = {}): CcbGrou
 }
 
 describe("rankCcbGroups", () => {
-  it("ranks class-name matches above description and leader matches", () => {
+  it("ranks group-name matches above description and leader matches", () => {
     const results = rankCcbGroups(
       [
         group("1", "Sunday Adults", { description: "Discover your purpose" }),
@@ -50,13 +50,13 @@ describe("rankCcbGroups", () => {
     );
 
     expect(results.map((result) => result.group.id)).toEqual(["2", "3", "1"]);
-    expect(results[0].matchReason).toBe("Class name");
+    expect(results[0].matchReason).toBe("Group name");
   });
 
   it("ranks exact names above prefixes and contains matches", () => {
     const results = rankCcbGroups(
       [
-        group("1", "The Discover Class"),
+        group("1", "The Discover Group"),
         group("2", "Discover Next"),
         group("3", "Discover")
       ],

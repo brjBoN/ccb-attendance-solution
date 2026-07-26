@@ -54,7 +54,7 @@ export async function PUT(
   const parsed = updateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Enter at least one valid class meeting time.", details: parsed.error.flatten() },
+      { error: "Enter at least one valid group meeting time.", details: parsed.error.flatten() },
       { status: 400 }
     );
   }
@@ -64,7 +64,7 @@ export async function PUT(
     const key = `${slot.dayOfWeek}:${slot.startTime}`;
     if (duplicateStarts.has(key)) {
       return NextResponse.json(
-        { error: "Each class meeting time must be unique." },
+        { error: "Each group meeting time must be unique." },
         { status: 400 }
       );
     }
@@ -82,7 +82,7 @@ export async function PUT(
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if ((existing ?? []).length !== requestedIds.length) {
       return NextResponse.json(
-        { error: "One or more schedule rows do not belong to this class." },
+        { error: "One or more schedule rows do not belong to this group." },
         { status: 400 }
       );
     }
@@ -151,7 +151,7 @@ export async function PUT(
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Could not save the class schedule.",
+        error: error instanceof Error ? error.message : "Could not save the group schedule.",
         ccbService: error instanceof CcbClientError ? error.service : undefined
       },
       { status: 500 }
@@ -173,7 +173,7 @@ async function mappingForRequest({ id }: { id: string }) {
   if (error || !mapping) {
     return {
       response: NextResponse.json(
-        { error: error?.message ?? "Class mapping not found." },
+        { error: error?.message ?? "Group mapping not found." },
         { status: 404 }
       )
     };
@@ -182,7 +182,7 @@ async function mappingForRequest({ id }: { id: string }) {
   if (!canManageSessionForGroup(admin, mapping)) {
     return {
       response: NextResponse.json(
-        { error: "Only this class's main leader or a full administrator can manage its schedule." },
+        { error: "Only this group's main leader or a full administrator can manage its schedule." },
         { status: 403 }
       )
     };

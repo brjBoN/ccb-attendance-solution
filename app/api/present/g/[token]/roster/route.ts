@@ -23,7 +23,7 @@ export async function GET(
   );
   if (!slug) {
     return NextResponse.json(
-      { error: "This class display was not found." },
+      { error: "This group display was not found." },
       { status: 404, headers: PRIVATE_NO_STORE }
     );
   }
@@ -50,7 +50,7 @@ export async function GET(
     const roster = await getPresentRoster(token);
     if (!roster) {
       return NextResponse.json(
-        { error: "This class display was not found." },
+        { error: "This group display was not found." },
         { status: 404, headers: PRIVATE_NO_STORE }
       );
     }

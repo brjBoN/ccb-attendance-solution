@@ -81,7 +81,7 @@ export function buildPublicPresentRoster(
     .map(([ccbIndividualId, attendee]) => ({
       key: publicRosterKey(sessionId, ccbIndividualId, keySecret),
       name: formatPublicAttendanceName(
-        attendee.name ?? (attendee.isLeader ? "Class leader" : "Present participant")
+        attendee.name ?? (attendee.isLeader ? "Group leader" : "Present participant")
       ),
       isLeader: attendee.isLeader
     }))
@@ -96,7 +96,7 @@ export function buildPublicPresentRoster(
 export function formatPublicAttendanceName(value: string) {
   const name = sanitizeAttendanceName(value);
   if (!name) return "Present participant";
-  if (/^class leader$/i.test(name)) return "Class leader";
+  if (/^(class|group) leader$/i.test(name)) return "Group leader";
   if (/^present participant$/i.test(name)) return "Present participant";
 
   const parts = name.split(" ");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildAttendanceRoster } from "@/lib/attendance/roster";
 
 describe("buildAttendanceRoster", () => {
-  it("automatically includes the class leader", () => {
+  it("automatically includes the group leader", () => {
     expect(
       buildAttendanceRoster({
         existingCcbIds: ["member-1"],

@@ -44,11 +44,11 @@ export default async function LoginPage({
             Make every welcome count.
           </h1>
           <p className="mt-5 text-lg leading-8 text-white/65">
-            Manage class schedules, pending guests, permissions, and CCB
+            Manage group schedules, pending guests, permissions, and CCB
             attendance from one place.
           </p>
           <div className="mt-8 space-y-3 text-sm text-white/75">
-            <Benefit>Set regular and special class times</Benefit>
+            <Benefit>Set regular and special group times</Benefit>
             <Benefit>Review pending guest submissions</Benefit>
             <Benefit>Monitor protected CCB attendance sync</Benefit>
           </div>
@@ -76,7 +76,7 @@ export default async function LoginPage({
             href="/teacher"
             className="mt-5 flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold text-[#0866ff] transition hover:bg-white/55"
           >
-            Teacher check-in does not need a login
+            Leader check-in does not need a login
           </Link>
         </div>
       </section>

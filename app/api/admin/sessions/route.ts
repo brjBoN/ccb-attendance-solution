@@ -79,14 +79,14 @@ export async function POST(request: NextRequest) {
 
   if (mappingError || !mapping) {
     return NextResponse.json(
-      { error: mappingError?.message ?? "Class mapping not found." },
+      { error: mappingError?.message ?? "Group mapping not found." },
       { status: 404 }
     );
   }
 
   if (!canManageSessionForGroup(admin, mapping)) {
     return NextResponse.json(
-      { error: "Only this class's main leader or a full administrator can add a special meeting." },
+      { error: "Only this group's main leader or a full administrator can add a special meeting." },
       { status: 403 }
     );
   }

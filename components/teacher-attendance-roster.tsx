@@ -234,7 +234,7 @@ export function TeacherAttendanceRoster({ token }: { token: string }) {
           <CenteredState
             icon={<Clock3 className="h-5 w-5" />}
             title="Attendance isn’t open"
-            message={roster.message ?? "The roster will appear during the class check-in window."}
+            message={roster.message ?? "The roster will appear during the group check-in window."}
           />
         ) : null}
 
@@ -390,7 +390,7 @@ function getStatusText({
 function minimizeName(name: string) {
   const trimmed = name.trim().replace(/\s+/g, " ");
   if (!trimmed) return "Attendee";
-  if (trimmed.toLowerCase() === "class leader") return "Class leader";
+  if (/^(class|group) leader$/i.test(trimmed)) return "Group leader";
   if (trimmed.toLowerCase() === "present participant") {
     return "Present participant";
   }

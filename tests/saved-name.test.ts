@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   parseSavedCheckinName,
   readSavedCheckinName,
-  removeSavedCheckinName,
   SAVED_NAME_TTL_MS,
   savedNameStorageKey,
   serializeSavedCheckinName,
@@ -74,7 +73,7 @@ describe("saved group check-in name", () => {
     ).toBeNull();
   });
 
-  it("keeps groups isolated and removes only the requested group", () => {
+  it("keeps saved names isolated by group", () => {
     const storage = memoryStorage();
 
     expect(
@@ -97,8 +96,6 @@ describe("saved group check-in name", () => {
     expect(readSavedCheckinName(storage, GROUP_A, 2_000)?.firstName).toBe(
       "Jordan"
     );
-    expect(removeSavedCheckinName(storage, GROUP_A)).toBe(true);
-    expect(readSavedCheckinName(storage, GROUP_A, 2_000)).toBeNull();
     expect(readSavedCheckinName(storage, GROUP_B, 2_000)?.firstName).toBe(
       "Taylor"
     );
@@ -124,7 +121,6 @@ describe("saved group check-in name", () => {
         lastName: "Matthews"
       })
     ).toBe(false);
-    expect(removeSavedCheckinName(deniedStorage, GROUP_A)).toBe(false);
   });
 });
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.11.0 — Group and leader language
+
+- Removed saved-name clearing controls while keeping automatic per-group name
+  remembering, automatic lookup, and editable name fields.
+- Replaced user-facing class/classes language with group/groups throughout the
+  public, leader, admin, API-error, and attendance-roster experiences.
+- Replaced user-facing teacher language with leader language.
+- Added a migration that changes database-generated regular meeting titles
+  from "Class Meeting" to "Group Meeting" without changing custom titles.
+
 ## 1.10.1 — Eastern-time check-in display
 
 - Fixed the public group check-in page so Vercel displays meeting dates and

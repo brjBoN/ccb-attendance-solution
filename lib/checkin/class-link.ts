@@ -40,7 +40,7 @@ export async function getInternalCheckinSessionByClassSlug(
     return {
       ok: false,
       reason: "not_found",
-      message: "This class check-in link was not found. Please ask your group leader for the class QR code."
+      message: "This group check-in link was not found. Please ask your group leader for the group QR code."
     };
   }
 
@@ -58,7 +58,7 @@ export async function getInternalCheckinSessionByClassSlug(
     return {
       ok: false,
       reason: "not_found",
-      message: "This class check-in link was not found. Please ask your group leader for the class QR code."
+      message: "This group check-in link was not found. Please ask your group leader for the group QR code."
     };
   }
 
@@ -69,7 +69,7 @@ export async function getInternalCheckinSessionByClassSlug(
       ok: false,
       reason: "not_active",
       groupName: classMapping.group_name,
-      message: "Check-in is currently disabled for this class."
+      message: "Check-in is currently disabled for this group."
     };
   }
 
@@ -88,7 +88,7 @@ export async function getInternalCheckinSessionByClassSlug(
       ok: false,
       reason: "no_meeting",
       groupName: classMapping.group_name,
-      message: "We could not load this class meeting. Please try again or ask your group leader for help."
+      message: "We could not load this group meeting. Please try again or ask your group leader for help."
     };
   }
 

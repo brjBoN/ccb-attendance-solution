@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminSessionsManager } from "@/components/admin-sessions-manager";
 
 export const metadata: Metadata = {
-  title: "Class Schedules"
+  title: "Group Schedules"
 };
 
 export default function AdminSessionsPage() {
@@ -14,10 +14,10 @@ export default function AdminSessionsPage() {
             Attendance
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-[#0b1f3a] sm:text-5xl">
-            Class schedules
+            Group schedules
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[#5f7187]">
-            Set the weekly times each class meets. Attendance opens
+            Set the weekly times each group meets. Attendance opens
             automatically, and leaders can add one-time exceptions when plans
             change.
           </p>

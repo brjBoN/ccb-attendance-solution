@@ -56,7 +56,7 @@ export async function ensureLeaderAttendanceForSession(
       ccb_sync_status: "not_synced",
       idempotency_key: `automatic-class-leader:${input.sessionId}`,
       metadata: {
-        display_name: "Class leader",
+        display_name: "Group leader",
         attendance_role: "leader",
         assumed_present: true,
         phase: "automatic_class_leader_attendance",

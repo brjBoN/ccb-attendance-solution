@@ -7,7 +7,7 @@ import {
   sanitizeAttendanceName
 } from "@/lib/attendance/present-roster-view";
 
-describe("teacher present roster", () => {
+describe("leader present roster", () => {
   it("merges the same person by CCB ID and prefers an authoritative name", () => {
     const roster = buildPublicPresentRoster(
       "session-1",
@@ -81,7 +81,8 @@ describe("teacher present roster", () => {
     expect(formatPublicAttendanceName("Taylor Morgan")).toBe("Taylor M.");
     expect(formatPublicAttendanceName("Taylor Morgan Jr.")).toBe("Taylor M.");
     expect(formatPublicAttendanceName("Cher")).toBe("Cher");
-    expect(formatPublicAttendanceName("Class leader")).toBe("Class leader");
+    expect(formatPublicAttendanceName("Class leader")).toBe("Group leader");
+    expect(formatPublicAttendanceName("Group leader")).toBe("Group leader");
     expect(formatPublicAttendanceName("Present participant")).toBe(
       "Present participant"
     );

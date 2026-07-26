@@ -11,7 +11,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
   if (!mapping?.public_checkin_slug) {
     return NextResponse.json(
-      { error: "The permanent class link is not ready. Run Supabase migration 0008, then try again." },
+      { error: "The permanent group link is not ready. Run Supabase migration 0008, then try again." },
       { status: 409 }
     );
   }
@@ -34,6 +34,6 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       checkinUrl,
       qrDataUrl
     },
-    message: "This class uses one permanent QR code. No meeting-specific token was created."
+    message: "This group uses one permanent QR code. No meeting-specific token was created."
   });
 }
