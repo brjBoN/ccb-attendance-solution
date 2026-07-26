@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.1 — Heritage small-groups welcome photo
+
+- Replaced the nursery welcome image with an official, playful Heritage Church
+  community photo with no single focal leader.
+- Centered the responsive crop and updated the image description and source
+  attribution.
+
 ## 1.2.0 — Permanent class QR and visual redesign
 
 - Added one stable public check-in slug to every mapped class.

@@ -12,12 +12,12 @@ export default function HomePage() {
     <main className="min-h-[100svh] overflow-hidden bg-[#F4F8FC] lg:grid lg:grid-cols-[minmax(0,1.18fr)_minmax(420px,0.82fr)]">
       <section className="relative min-h-[57svh] overflow-hidden lg:min-h-[100svh]">
         <Image
-          src="/heritage-welcome.jpg"
-          alt="Heritage Church volunteers welcoming a child"
+          src="/heritage-small-groups-welcome.jpg"
+          alt="Heritage Church community members sharing a playful moment"
           fill
           priority
           sizes="(min-width: 1024px) 60vw, 100vw"
-          className="object-cover object-[35%_center] lg:object-center"
+          className="object-cover object-center"
         />
         <div
           aria-hidden="true"
