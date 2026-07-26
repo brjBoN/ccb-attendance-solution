@@ -98,4 +98,37 @@ describe("selectCurrentClassSession", () => {
 
     expect(result).toBeNull();
   });
+
+  it("honors the exact Discover attendance window boundaries", () => {
+    const discover = session("discover", {
+      occurrence_start_at: "2026-07-26T14:15:00.000Z",
+      checkin_opens_at: "2026-07-26T13:45:00.000Z",
+      checkin_closes_at: "2026-07-26T17:15:00.000Z"
+    });
+
+    expect(
+      selectCurrentClassSession(
+        [discover],
+        new Date("2026-07-26T13:44:59.999Z")
+      )
+    ).toBeNull();
+    expect(
+      selectCurrentClassSession(
+        [discover],
+        new Date("2026-07-26T13:45:00.000Z")
+      )?.id
+    ).toBe("discover");
+    expect(
+      selectCurrentClassSession(
+        [discover],
+        new Date("2026-07-26T17:15:00.000Z")
+      )?.id
+    ).toBe("discover");
+    expect(
+      selectCurrentClassSession(
+        [discover],
+        new Date("2026-07-26T17:15:00.001Z")
+      )
+    ).toBeNull();
+  });
 });

@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition
 } from "react";
@@ -26,6 +27,10 @@ import {
   Trash2,
   X
 } from "lucide-react";
+import {
+  describeScheduleWindow,
+  WEEKDAY_NAMES
+} from "@/lib/checkin/schedule-window";
 
 type GroupMapping = {
   id: string;
@@ -41,6 +46,8 @@ type ScheduleSlot = {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  opensMinutesBefore: number;
+  closesMinutesAfter: number;
 };
 
 type StoredScheduleSlot = {
@@ -48,6 +55,8 @@ type StoredScheduleSlot = {
   day_of_week: number;
   start_time: string;
   end_time: string;
+  checkin_opens_minutes_before: number;
+  checkin_closes_minutes_after: number;
 };
 
 type SessionRow = {
@@ -69,15 +78,7 @@ type ClassLink = {
   qrDataUrl: string;
 };
 
-const DAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday"
-];
+const DEFAULT_CHECKIN_MARGIN_MINUTES = 30;
 
 function todayValue() {
   const date = new Date();
@@ -108,6 +109,7 @@ export function AdminSessionsManager() {
   const [classLinkLoading, setClassLinkLoading] = useState(false);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleSlot[]>([]);
+  const [savedSchedule, setSavedSchedule] = useState<ScheduleSlot[]>([]);
   const [specialTitle, setSpecialTitle] = useState("");
   const [specialDate, setSpecialDate] = useState(todayValue);
   const [specialStart, setSpecialStart] = useState("18:00");
@@ -115,6 +117,7 @@ export function AdminSessionsManager() {
   const [specialNote, setSpecialNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const latestMappingIdRef = useRef("");
 
   const selectedMapping = useMemo(
     () => mappings.find((mapping) => mapping.id === selectedMappingId),
@@ -153,6 +156,7 @@ export function AdminSessionsManager() {
       `/api/admin/group-mappings/${mappingId}/class-link`
     );
     const data = await response.json();
+    if (latestMappingIdRef.current !== mappingId) return;
     setClassLinkLoading(false);
     if (!response.ok) {
       setMessage(data.error ?? "Could not load the class QR code.");
@@ -164,27 +168,44 @@ export function AdminSessionsManager() {
   const loadSchedule = useCallback(async (mappingId: string) => {
     if (!mappingId) return;
     setScheduleLoading(true);
+    setSavedSchedule([]);
     const response = await fetch(
       `/api/admin/group-mappings/${mappingId}/schedule`
     );
     const data = await response.json();
+    if (latestMappingIdRef.current !== mappingId) return;
     setScheduleLoading(false);
     if (!response.ok) {
       setSchedule([]);
+      setSavedSchedule([]);
       setMessage(data.error ?? "Could not load the class schedule.");
       return;
     }
 
     const stored = (data.results ?? []) as StoredScheduleSlot[];
+    const normalized = stored.map((slot) => ({
+      id: slot.id,
+      dayOfWeek: slot.day_of_week,
+      startTime: normalizeStoredTime(slot.start_time),
+      endTime: normalizeStoredTime(slot.end_time),
+      opensMinutesBefore:
+        slot.checkin_opens_minutes_before ?? DEFAULT_CHECKIN_MARGIN_MINUTES,
+      closesMinutesAfter:
+        slot.checkin_closes_minutes_after ?? DEFAULT_CHECKIN_MARGIN_MINUTES
+    }));
+    setSavedSchedule(normalized);
     setSchedule(
-      stored.length
-        ? stored.map((slot) => ({
-            id: slot.id,
-            dayOfWeek: slot.day_of_week,
-            startTime: normalizeStoredTime(slot.start_time),
-            endTime: normalizeStoredTime(slot.end_time)
-          }))
-        : [{ dayOfWeek: 0, startTime: "09:00", endTime: "10:15" }]
+      normalized.length
+        ? normalized
+        : [
+            {
+              dayOfWeek: 0,
+              startTime: "09:00",
+              endTime: "10:15",
+              opensMinutesBefore: DEFAULT_CHECKIN_MARGIN_MINUTES,
+              closesMinutesAfter: DEFAULT_CHECKIN_MARGIN_MINUTES
+            }
+          ]
     );
   }, []);
 
@@ -195,6 +216,7 @@ export function AdminSessionsManager() {
 
   useEffect(() => {
     if (!selectedMapping) return;
+    latestMappingIdRef.current = selectedMapping.id;
     setMessage(null);
     setSpecialTitle("");
     void Promise.all([
@@ -213,13 +235,17 @@ export function AdminSessionsManager() {
 
   function addScheduleSlot() {
     const usedDays = new Set(schedule.map((slot) => slot.dayOfWeek));
-    const nextDay = DAYS.findIndex((_day, index) => !usedDays.has(index));
+    const nextDay = WEEKDAY_NAMES.findIndex(
+      (_day, index) => !usedDays.has(index)
+    );
     setSchedule((current) => [
       ...current,
       {
         dayOfWeek: nextDay >= 0 ? nextDay : 0,
         startTime: "18:00",
-        endTime: "19:30"
+        endTime: "19:30",
+        opensMinutesBefore: DEFAULT_CHECKIN_MARGIN_MINUTES,
+        closesMinutesAfter: DEFAULT_CHECKIN_MARGIN_MINUTES
       }
     ]);
   }
@@ -376,6 +402,57 @@ export function AdminSessionsManager() {
               )}
             </div>
 
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.07] p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#a8decf]">
+                  <Clock3 className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    Attendance hours
+                  </p>
+                  <p className="mt-0.5 text-xs text-white/50">
+                    Eastern Time
+                  </p>
+                </div>
+              </div>
+
+              {scheduleLoading ? (
+                <p className="mt-4 text-sm text-white/55">
+                  Loading attendance hours...
+                </p>
+              ) : savedSchedule.length ? (
+                <div className="mt-4 space-y-3">
+                  {savedSchedule.map((slot) => {
+                    const window = describeScheduleWindow(slot);
+                    return (
+                      <div
+                        key={
+                          slot.id ??
+                          `${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}`
+                        }
+                        className="rounded-xl border border-white/10 bg-black/10 p-3"
+                      >
+                        <p className="text-sm font-semibold text-white">
+                          {window.dayName}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-white/65">
+                          Class: {window.meetingTime}
+                        </p>
+                        <p className="text-xs leading-5 text-[#a8decf]">
+                          Check-in open: {window.attendanceWindow}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm leading-6 text-white/55">
+                  Save a regular schedule to set attendance hours.
+                </p>
+              )}
+            </div>
+
             {classLink ? (
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <button
@@ -475,7 +552,7 @@ export function AdminSessionsManager() {
                             }
                             className="form-input"
                           >
-                            {DAYS.map((day, dayIndex) => (
+                            {WEEKDAY_NAMES.map((day, dayIndex) => (
                               <option key={day} value={dayIndex}>
                                 {day}
                               </option>
