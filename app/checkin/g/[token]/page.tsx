@@ -123,7 +123,10 @@ export default async function PublicCheckInPage({
             </div>
           </div>
 
-          <PublicCheckinForm token={token} />
+          <PublicCheckinForm
+            token={token}
+            canRememberName={session.reusableClassLink}
+          />
 
           <div className="mt-7 flex items-center justify-center gap-2 border-t border-[#e2ebf4] pt-5 text-xs text-[#7a8b9d]">
             <ShieldCheck className="h-3.5 w-3.5" />

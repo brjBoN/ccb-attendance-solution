@@ -58,16 +58,16 @@ export default function HomePage() {
             href="/teacher"
             icon={<QrCode className="h-7 w-7" />}
             eyebrow="No login needed"
-            title="Find my class"
-            body="Choose a class and display its check-in code."
+            title="Find my group"
+            body="Choose a group and display its check-in code."
             tone="primary"
           />
           <ModeCard
             href="/login"
             icon={<LockKeyhole className="h-7 w-7" />}
-            eyebrow="Admin sign in"
-            title="Manage attendance"
-            body="Change class times, review guests, and manage classes."
+            eyebrow="Sign in required"
+            title="Admin"
+            body="Change group meeting times, review guests, and manage groups."
             tone="light"
           />
         </div>

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.9.0 — Faster returning check-in
+
+- Added an optional personal-device setting that remembers only a person’s
+  first and last name after a successful check-in.
+- Returning visitors to the same group now get one automatic name search while
+  still confirming the correct CCB profile before attendance is submitted.
+- Added a 90-day expiration and a clear saved-name control for shared-device
+  safety.
+- Updated homepage and social-preview language from classes to groups, including
+  the new “Find my group” and “Admin” card titles.
+
 ## 1.8.0 — Live teacher attendance roster
 
 - Added a live-updating present roster directly below each teacher QR code.

@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   const title = "Heritage Church Attendance";
   const description =
-    "Simple class schedules and attendance synchronized to CCB for Heritage Church.";
+    "Simple group schedules and attendance synchronized to CCB for Heritage Church.";
 
   return {
     metadataBase,

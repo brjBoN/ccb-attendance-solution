@@ -64,7 +64,7 @@ export default function OpenGraphImage() {
                 textTransform: "uppercase"
               }}
             >
-              Class attendance
+              Group attendance
             </div>
             <div
               style={{
@@ -76,7 +76,7 @@ export default function OpenGraphImage() {
                 maxWidth: 780
               }}
             >
-              Find your class. Scan once. Check in.
+              Find your group. Scan once. Check in.
             </div>
             <div
               style={{
@@ -85,7 +85,7 @@ export default function OpenGraphImage() {
                 marginTop: 28
               }}
             >
-              Simple class schedules and attendance synchronized with CCB.
+              Simple group schedules and attendance synchronized with CCB.
             </div>
           </div>
         </div>

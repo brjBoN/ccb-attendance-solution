@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState, useTransition } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition
+} from "react";
 import {
   CheckCircle2,
   Loader2,
@@ -9,6 +16,13 @@ import {
   UserPlus,
   UserRoundX
 } from "lucide-react";
+import {
+  readSavedCheckinName,
+  removeSavedCheckinName,
+  savedNameStorageKey,
+  type SavedCheckinName,
+  writeSavedCheckinName
+} from "@/lib/checkin/saved-name";
 
 type PublicMatch = {
   id: string;
@@ -35,7 +49,19 @@ type SubmitResponse = {
   error?: string;
 };
 
-export function PublicCheckinForm({ token }: { token: string }) {
+type SearchInput = {
+  firstName: string;
+  lastName: string;
+  phoneOrEmail: string;
+};
+
+export function PublicCheckinForm({
+  token,
+  canRememberName
+}: {
+  token: string;
+  canRememberName: boolean;
+}) {
   const [mode, setMode] = useState<"search" | "guest">("search");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -48,59 +74,204 @@ export function PublicCheckinForm({ token }: { token: string }) {
   const [message, setMessage] = useState<string | null>(null);
   const [finalMessage, setFinalMessage] = useState<string | null>(null);
   const [wasSuccessful, setWasSuccessful] = useState(false);
+  const [rememberOnDevice, setRememberOnDevice] = useState(false);
+  const [savedName, setSavedName] = useState<SavedCheckinName | null>(null);
+  const [usingSavedName, setUsingSavedName] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const searchRequestRef = useRef<AbortController | null>(null);
+  const searchSequenceRef = useRef(0);
+  const autoSearchTokenRef = useRef<string | null>(null);
 
-  const optionalContact = useMemo(() => {
-    const value = phoneOrEmail.trim();
-    if (!value) return {};
-    if (value.includes("@")) return { email: value };
-    return { phone: value };
-  }, [phoneOrEmail]);
+  const performSearch = useCallback(
+    (
+      input: SearchInput,
+      source: "manual" | "saved" = "manual"
+    ) => {
+      const normalizedFirstName = input.firstName.trim();
+      const normalizedLastName = input.lastName.trim();
+      if (!normalizedFirstName || !normalizedLastName) return;
+
+      searchRequestRef.current?.abort();
+      const controller = new AbortController();
+      const sequence = ++searchSequenceRef.current;
+      searchRequestRef.current = controller;
+      const contactValue = input.phoneOrEmail.trim();
+      const optionalContact = !contactValue
+        ? {}
+        : contactValue.includes("@")
+          ? { email: contactValue }
+          : { phone: contactValue };
+
+      startTransition(async () => {
+        setMessage(
+          source === "saved"
+            ? "Welcome back — searching with your saved name..."
+            : "Searching CCB..."
+        );
+        setFinalMessage(null);
+        setWasSuccessful(false);
+        setSelected(null);
+        setResults([]);
+
+        try {
+          const response = await fetch(
+            `/api/checkin/${encodeURIComponent(token)}/search`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                firstName: normalizedFirstName,
+                lastName: normalizedLastName,
+                ...optionalContact
+              }),
+              signal: controller.signal
+            }
+          );
+
+          const data = (await response.json()) as SearchResponse;
+          if (
+            controller.signal.aborted ||
+            sequence !== searchSequenceRef.current
+          ) {
+            return;
+          }
+
+          if (!response.ok) {
+            setMessage(data.error ?? "Could not search for your profile.");
+            return;
+          }
+
+          setResults(data.results ?? []);
+
+          if (!data.results?.length) {
+            setMessage(
+              source === "saved"
+                ? "We couldn’t find the name saved on this device. Edit it below and try again."
+                : "No matching profiles were found. Use “I don’t see myself / I’m new” below."
+            );
+            return;
+          }
+
+          const welcomePrefix = source === "saved" ? "Welcome back. " : "";
+          if (data.truncated) {
+            setMessage(
+              `${welcomePrefix}Found ${data.count} possible matches. Showing the first ${data.results.length}. Add phone/email if you need to narrow it down.`
+            );
+          } else {
+            setMessage(
+              `${welcomePrefix}Found ${data.count} possible match${data.count === 1 ? "" : "es"}. Select yourself below.`
+            );
+          }
+        } catch {
+          if (
+            controller.signal.aborted ||
+            sequence !== searchSequenceRef.current
+          ) {
+            return;
+          }
+          setMessage("Could not search for your profile. Please try again.");
+        } finally {
+          if (searchRequestRef.current === controller) {
+            searchRequestRef.current = null;
+          }
+        }
+      });
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    searchRequestRef.current?.abort();
+    searchRequestRef.current = null;
+    searchSequenceRef.current += 1;
+    autoSearchTokenRef.current = null;
+    setMode("search");
+    setFirstName("");
+    setLastName("");
+    setPhoneOrEmail("");
+    setResults([]);
+    setSelected(null);
+    setMessage(null);
+    setFinalMessage(null);
+    setWasSuccessful(false);
+    setRememberOnDevice(false);
+    setSavedName(null);
+    setUsingSavedName(false);
+
+    let timerId: number | null = null;
+    let searchWhenVisible: (() => void) | null = null;
+
+    if (canRememberName && savedNameStorageKey(token)) {
+      const storage = getBrowserStorage();
+      const remembered = storage
+        ? readSavedCheckinName(storage, token)
+        : null;
+
+      if (remembered) {
+        setFirstName(remembered.firstName);
+        setLastName(remembered.lastName);
+        setRememberOnDevice(true);
+        setSavedName(remembered);
+        setUsingSavedName(true);
+
+        const startAutoSearch = () => {
+          if (
+            document.visibilityState !== "visible" ||
+            autoSearchTokenRef.current === token
+          ) {
+            return;
+          }
+          autoSearchTokenRef.current = token;
+          timerId = window.setTimeout(() => {
+            performSearch(
+              {
+                firstName: remembered.firstName,
+                lastName: remembered.lastName,
+                phoneOrEmail: ""
+              },
+              "saved"
+            );
+          }, 0);
+        };
+        searchWhenVisible = () => {
+          if (document.visibilityState === "visible") {
+            if (searchWhenVisible) {
+              document.removeEventListener(
+                "visibilitychange",
+                searchWhenVisible
+              );
+            }
+            startAutoSearch();
+          }
+        };
+
+        if (document.visibilityState === "visible") {
+          startAutoSearch();
+        } else {
+          document.addEventListener("visibilitychange", searchWhenVisible);
+        }
+      }
+    }
+
+    return () => {
+      if (timerId !== null) window.clearTimeout(timerId);
+      if (searchWhenVisible) {
+        document.removeEventListener("visibilitychange", searchWhenVisible);
+      }
+      searchRequestRef.current?.abort();
+      searchRequestRef.current = null;
+      searchSequenceRef.current += 1;
+      if (autoSearchTokenRef.current === token) {
+        autoSearchTokenRef.current = null;
+      }
+    };
+  }, [canRememberName, performSearch, token]);
 
   function searchPeople(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    startTransition(async () => {
-      setMessage("Searching CCB...");
-      setFinalMessage(null);
-      setWasSuccessful(false);
-      setSelected(null);
-      setResults([]);
-
-      const response = await fetch(`/api/checkin/${encodeURIComponent(token)}/search`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          ...optionalContact
-        })
-      });
-
-      const data = (await response.json()) as SearchResponse;
-
-      if (!response.ok) {
-        setMessage(data.error ?? "Could not search for your profile.");
-        return;
-      }
-
-      setResults(data.results ?? []);
-
-      if (!data.results?.length) {
-        setMessage("No matching profiles were found. Use “I don’t see myself / I’m new” below.");
-        return;
-      }
-
-      if (data.truncated) {
-        setMessage(
-          `Found ${data.count} possible matches. Showing the first ${data.results.length}. Add phone/email if you need to narrow it down.`
-        );
-      } else {
-        setMessage(`Found ${data.count} possible match${data.count === 1 ? "" : "es"}. Select yourself below.`);
-      }
-    });
+    performSearch({ firstName, lastName, phoneOrEmail });
   }
 
   function submitCheckin(match: PublicMatch) {
@@ -130,9 +301,56 @@ export function PublicCheckinForm({ token }: { token: string }) {
         return;
       }
 
+      if (
+        canRememberName &&
+        rememberOnDevice
+      ) {
+        const storage = getBrowserStorage();
+        const rememberedFirstName =
+          match.firstName?.trim() || firstName.trim();
+        const rememberedLastName =
+          match.lastName?.trim() || lastName.trim();
+        const saved =
+          storage &&
+          writeSavedCheckinName(storage, token, {
+            firstName: rememberedFirstName,
+            lastName: rememberedLastName
+          });
+
+        if (saved && storage) {
+          setSavedName(readSavedCheckinName(storage, token));
+          setUsingSavedName(true);
+        }
+      }
+
       setFinalMessage(data.message);
       setWasSuccessful(true);
     });
+  }
+
+  function forgetSavedName(resetForm: boolean) {
+    searchRequestRef.current?.abort();
+    searchRequestRef.current = null;
+    searchSequenceRef.current += 1;
+
+    const storage = getBrowserStorage();
+    if (storage) removeSavedCheckinName(storage, token);
+
+    setSavedName(null);
+    setUsingSavedName(false);
+    setRememberOnDevice(false);
+
+    if (resetForm) {
+      setMode("search");
+      setFirstName("");
+      setLastName("");
+      setPhoneOrEmail("");
+      setResults([]);
+      setSelected(null);
+      setMessage("Saved name cleared. Enter the name you want to use.");
+      setFinalMessage(null);
+      setWasSuccessful(false);
+    }
   }
 
   function submitGuest(event: FormEvent<HTMLFormElement>) {
@@ -184,6 +402,21 @@ export function PublicCheckinForm({ token }: { token: string }) {
             Selected: {selected.fullName ?? [selected.firstName, selected.lastName].filter(Boolean).join(" ")}
           </p>
         ) : null}
+        {mode === "search" && savedName && rememberOnDevice ? (
+          <div className="mt-4 rounded-xl border border-cyan-200 bg-white/70 px-3 py-2.5 text-xs leading-5 text-cyan-900">
+            <p>
+              Your name is saved on this personal device for faster group
+              check-in next time.
+            </p>
+            <button
+              type="button"
+              onClick={() => forgetSavedName(false)}
+              className="mt-1 font-bold text-[#0754d6] underline underline-offset-2"
+            >
+              Forget saved name
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -201,7 +434,10 @@ export function PublicCheckinForm({ token }: { token: string }) {
               <span className="text-sm font-medium text-slate-700">First name</span>
               <input
                 value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
+                onChange={(event) => {
+                  setFirstName(event.target.value);
+                  setUsingSavedName(false);
+                }}
                 required
                 autoComplete="given-name"
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -212,7 +448,10 @@ export function PublicCheckinForm({ token }: { token: string }) {
               <span className="text-sm font-medium text-slate-700">Last name</span>
               <input
                 value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
+                onChange={(event) => {
+                  setLastName(event.target.value);
+                  setUsingSavedName(false);
+                }}
                 required
                 autoComplete="family-name"
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -276,13 +515,32 @@ export function PublicCheckinForm({ token }: { token: string }) {
 
   return (
     <div className="mt-6">
+      {savedName && usingSavedName ? (
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#b9d6ff] bg-[#eef6ff] p-4 text-sm leading-6 text-[#294c70] sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            <strong className="text-[#173e68]">Welcome back.</strong>{" "}
+            Using the name saved for this group.
+          </p>
+          <button
+            type="button"
+            onClick={() => forgetSavedName(true)}
+            className="shrink-0 rounded-xl border border-[#b9d6ff] bg-white px-3 py-2 text-xs font-bold text-[#0754d6]"
+          >
+            Not you? Forget this name
+          </button>
+        </div>
+      ) : null}
+
       <form onSubmit={searchPeople} className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">First name</span>
             <input
               value={firstName}
-              onChange={(event) => setFirstName(event.target.value)}
+              onChange={(event) => {
+                setFirstName(event.target.value);
+                setUsingSavedName(false);
+              }}
               required
               autoComplete="given-name"
               className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -293,7 +551,10 @@ export function PublicCheckinForm({ token }: { token: string }) {
             <span className="text-sm font-medium text-slate-700">Last name</span>
             <input
               value={lastName}
-              onChange={(event) => setLastName(event.target.value)}
+              onChange={(event) => {
+                setLastName(event.target.value);
+                setUsingSavedName(false);
+              }}
               required
               autoComplete="family-name"
               className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -313,6 +574,33 @@ export function PublicCheckinForm({ token }: { token: string }) {
             className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
           />
         </label>
+
+        {canRememberName ? (
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#d7e2ee] bg-[#f8fbff] p-4 text-sm text-[#38536f]">
+            <input
+              type="checkbox"
+              checked={rememberOnDevice}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                if (!checked && savedName) {
+                  forgetSavedName(false);
+                  return;
+                }
+                setRememberOnDevice(checked);
+              }}
+              className="mt-1 h-4 w-4 rounded border-[#a9bfd5] text-[#0866ff] focus:ring-[#0866ff]"
+            />
+            <span>
+              <strong className="block text-[#173e68]">
+                Remember my name on this personal device
+              </strong>
+              <span className="mt-0.5 block text-xs leading-5 text-[#6a7c91]">
+                Saves only your first and last name for 90 days. Do not use
+                this on a shared device.
+              </span>
+            </span>
+          </label>
+        ) : null}
 
         <button
           disabled={isPending}
@@ -385,4 +673,13 @@ export function PublicCheckinForm({ token }: { token: string }) {
       </div>
     </div>
   );
+}
+
+function getBrowserStorage() {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
