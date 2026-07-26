@@ -15,8 +15,8 @@ export default async function TeacherClassesPage() {
   const classes = await listPublicTeacherClasses();
 
   return (
-    <main className="min-h-[100svh] bg-[#f3f2ec]">
-      <header className="border-b border-white/10 bg-[#12362f] text-white">
+    <main className="min-h-[100svh] bg-[#f4f8fc]">
+      <header className="border-b border-white/10 bg-[#071f3f] text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-7 sm:py-4">
           <Link
             href="/"
@@ -46,13 +46,13 @@ export default async function TeacherClassesPage() {
 
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-7 sm:px-7 sm:pt-10">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#167365]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0866ff]">
             Teacher check-in
           </p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#18332d] sm:text-5xl">
+          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#0b1f3a] sm:text-5xl">
             Choose your class
           </h1>
-          <p className="mt-3 max-w-xl text-base leading-7 text-[#667670]">
+          <p className="mt-3 max-w-xl text-base leading-7 text-[#5f7187]">
             Tap a class to immediately show its check-in QR code.
           </p>
         </div>
@@ -62,19 +62,19 @@ export default async function TeacherClassesPage() {
             <TeacherClassList classes={classes} />
           </div>
         ) : (
-          <div className="mt-8 rounded-[28px] border border-[#d7ddd8] bg-white p-7 text-center shadow-[0_16px_42px_rgba(24,45,39,0.06)] sm:p-10">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e5f2ed] text-[#167365]">
+          <div className="mt-8 rounded-[28px] border border-[#d7e2ee] bg-white p-7 text-center shadow-[0_16px_42px_rgba(7,31,63,0.06)] sm:p-10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e6f8fc] text-[#0866ff]">
               <LockKeyhole className="h-6 w-6" />
             </div>
-            <h2 className="mt-5 text-xl font-semibold text-[#203b34]">
+            <h2 className="mt-5 text-xl font-semibold text-[#132b48]">
               No check-in classes are available
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6b7a75]">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#65788d]">
               An administrator can enable a class and set its meeting time.
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex rounded-xl bg-[#167365] px-4 py-3 text-sm font-semibold text-white"
+              className="mt-6 inline-flex rounded-xl bg-[#0866ff] px-4 py-3 text-sm font-semibold text-white"
             >
               Admin sign in
             </Link>

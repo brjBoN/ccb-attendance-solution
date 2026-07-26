@@ -154,7 +154,7 @@ export function AdminCcbChecklist() {
               </div>
               <div className="text-sm">
                 <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">{completed} of {items.length} complete</span>
-                {requiredOpen ? <span className="ml-2 rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-800">Required QR item open</span> : null}
+                {requiredOpen ? <span className="ml-2 rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-900">Required QR item open</span> : null}
               </div>
             </div>
 
@@ -175,8 +175,8 @@ export function AdminCcbChecklist() {
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold text-slate-950">{item.label}</h3>
-                            {item.required_for_qr ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Required for QR readiness</span> : null}
-                            {item.status === "complete" ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : null}
+                            {item.required_for_qr ? <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-900">Required for QR readiness</span> : null}
+                            {item.status === "complete" ? <CheckCircle2 className="h-4 w-4 text-cyan-600" /> : null}
                           </div>
                           <p className="mt-2 text-sm leading-6 text-slate-600">{item.instructions}</p>
                           <div className="mt-3 rounded-xl bg-slate-50 p-3">

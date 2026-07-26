@@ -43,23 +43,23 @@ export default async function AdminDashboardPage() {
     <div className="mx-auto max-w-[1120px]">
       <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#167365]">
+          <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#0866ff]">
             Admin mode
           </p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#18332d] sm:text-5xl">
+          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#0b1f3a] sm:text-5xl">
             Manage attendance
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-[#667670]">
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[#5f7187]">
             Choose the part of the system you need to update.
           </p>
         </div>
-        <div className="w-fit rounded-full border border-[#d5ddd8] bg-white px-3.5 py-2 text-xs font-bold text-[#566b64]">
+        <div className="w-fit rounded-full border border-[#d7e2ee] bg-white px-3.5 py-2 text-xs font-bold text-[#51677f]">
           {APP_ROLE_LABELS[admin.role]}
         </div>
       </section>
 
       {needsCcbLink ? (
-        <div className="mt-6 rounded-2xl border border-[#ead9b4] bg-[#fff8e8] p-4 text-sm leading-6 text-[#705829]">
+        <div className="mt-6 rounded-2xl border border-[#b9d6ff] bg-[#eaf4ff] p-4 text-sm leading-6 text-[#28415f]">
           Your account needs to be connected to your CCB profile before your
           class schedules and attendance activity can appear.
         </div>
@@ -68,14 +68,14 @@ export default async function AdminDashboardPage() {
       <section className="mt-7">
         <Link
           href="/teacher"
-          className="group flex items-center justify-between gap-5 overflow-hidden rounded-[26px] bg-[#12362f] p-5 text-white shadow-[0_20px_55px_rgba(18,54,47,0.2)] transition active:scale-[0.99] sm:p-6 sm:hover:-translate-y-0.5"
+          className="group flex items-center justify-between gap-5 overflow-hidden rounded-[26px] bg-[#071f3f] p-5 text-white shadow-[0_20px_55px_rgba(7,31,63,0.2)] transition active:scale-[0.99] sm:p-6 sm:hover:-translate-y-0.5"
         >
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f1b86b] text-[#31382d]">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0099cb] text-[#071f3f]">
               <QrCode className="h-7 w-7" />
             </span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.13em] text-[#a8decf]">
+              <p className="text-xs font-bold uppercase tracking-[0.13em] text-[#74d9f1]">
                 Teacher check-in
               </p>
               <h2 className="mt-1 text-xl font-semibold sm:text-2xl">
@@ -94,8 +94,8 @@ export default async function AdminDashboardPage() {
 
       <section className="mt-8">
         <div className="mb-4">
-          <p className="text-sm font-semibold text-[#167365]">Admin tools</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[#18332d]">
+          <p className="text-sm font-semibold text-[#0866ff]">Admin tools</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[#0b1f3a]">
             What do you need to manage?
           </h2>
         </div>
@@ -108,28 +108,28 @@ export default async function AdminDashboardPage() {
               <Link
                 key={destination.key}
                 href={destination.href}
-                className={`group flex min-h-[178px] flex-col rounded-[24px] border p-5 transition active:scale-[0.99] sm:hover:-translate-y-0.5 sm:hover:shadow-[0_16px_40px_rgba(24,45,39,0.09)] ${
+                className={`group flex min-h-[178px] flex-col rounded-[24px] border p-5 transition active:scale-[0.99] sm:hover:-translate-y-0.5 sm:hover:shadow-[0_16px_40px_rgba(7,31,63,0.09)] ${
                   emphasized
-                    ? "border-[#bfd8cf] bg-[#e4f1ec]"
-                    : "border-[#d9dfda] bg-white"
+                    ? "border-[#b9d6ff] bg-[#eaf4ff]"
+                    : "border-[#d7e2ee] bg-white"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <span
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
                       emphasized
-                        ? "bg-[#167365] text-white"
-                        : "bg-[#edf3ef] text-[#167365]"
+                        ? "bg-[#0866ff] text-white"
+                        : "bg-[#eaf4ff] text-[#0866ff]"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
                   </span>
-                  <ArrowRight className="h-4 w-4 text-[#8b9994] transition group-hover:translate-x-1 group-hover:text-[#167365]" />
+                  <ArrowRight className="h-4 w-4 text-[#7a8b9d] transition group-hover:translate-x-1 group-hover:text-[#0866ff]" />
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-[#203b34]">
+                <h3 className="mt-5 text-lg font-semibold text-[#132b48]">
                   {destination.label}
                 </h3>
-                <p className="mt-1 text-sm leading-6 text-[#6d7c77]">
+                <p className="mt-1 text-sm leading-6 text-[#66798d]">
                   {destination.description}
                 </p>
               </Link>

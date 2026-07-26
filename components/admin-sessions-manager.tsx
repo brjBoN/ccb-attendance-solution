@@ -353,9 +353,9 @@ export function AdminSessionsManager() {
   return (
     <div className="space-y-7">
       <section className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-        <aside className="overflow-hidden rounded-[28px] bg-[#12362f] text-white shadow-[0_24px_70px_rgba(24,45,39,0.14)] xl:sticky xl:top-24 xl:self-start">
+        <aside className="overflow-hidden rounded-[28px] bg-[#071f3f] text-white shadow-[0_24px_70px_rgba(7,31,63,0.14)] xl:sticky xl:top-24 xl:self-start">
           <div className="border-b border-white/10 p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a8decf]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#74d9f1]">
               Class check-in code
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em]">
@@ -371,7 +371,7 @@ export function AdminSessionsManager() {
               <select
                 value={selectedMappingId}
                 onChange={(event) => setSelectedMappingId(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-sm text-white outline-none focus:border-[#a8decf] focus:ring-2 focus:ring-[#a8decf]/20"
+                className="mt-2 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-sm text-white outline-none focus:border-[#74d9f1] focus:ring-2 focus:ring-[#74d9f1]/20"
               >
                 {mappings.map((mapping) => (
                   <option
@@ -387,7 +387,7 @@ export function AdminSessionsManager() {
 
             <div className="mt-5 flex min-h-64 items-center justify-center rounded-2xl bg-white p-4">
               {classLinkLoading ? (
-                <div className="text-center text-[#49615b]">
+                <div className="text-center text-[#51677f]">
                   <Loader2 className="mx-auto h-7 w-7 animate-spin" />
                   <p className="mt-3 text-sm font-medium">Loading class code</p>
                 </div>
@@ -402,7 +402,7 @@ export function AdminSessionsManager() {
                   priority
                 />
               ) : (
-                <div className="text-center text-[#70817c]">
+                <div className="text-center text-[#6a7c91]">
                   <QrCode className="mx-auto h-10 w-10" />
                   <p className="mt-3 text-sm font-medium">
                     Choose a class to view its code
@@ -413,7 +413,7 @@ export function AdminSessionsManager() {
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.07] p-4">
               <div className="flex items-start gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#a8decf]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#74d9f1]">
                   <Clock3 className="h-4 w-4" />
                 </span>
                 <div>
@@ -448,7 +448,7 @@ export function AdminSessionsManager() {
                         <p className="mt-1 text-xs leading-5 text-white/65">
                           Class: {window.meetingTime}
                         </p>
-                        <p className="text-xs leading-5 text-[#a8decf]">
+                        <p className="text-xs leading-5 text-[#74d9f1]">
                           Check-in open: {window.attendanceWindow}
                         </p>
                       </div>
@@ -467,7 +467,7 @@ export function AdminSessionsManager() {
                 <button
                   type="button"
                   onClick={copyLink}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f1b86b] px-3 py-2.5 text-sm font-semibold text-[#2f2b1f] transition hover:bg-[#f5c681]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0099cb] px-3 py-2.5 text-sm font-semibold text-[#071f3f] transition hover:bg-[#18abd0]"
                 >
                   <Copy className="h-4 w-4" />
                   Copy check-in
@@ -483,7 +483,7 @@ export function AdminSessionsManager() {
                 <button
                   type="button"
                   onClick={copyPresentationLink}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#a8decf]/35 bg-[#a8decf]/10 px-3 py-2.5 text-sm font-semibold text-[#c8f2e6] transition hover:bg-[#a8decf]/15"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#74d9f1]/35 bg-[#74d9f1]/10 px-3 py-2.5 text-sm font-semibold text-[#c8f2e6] transition hover:bg-[#74d9f1]/15"
                 >
                   <Link2 className="h-4 w-4" />
                   Copy teacher link
@@ -514,16 +514,16 @@ export function AdminSessionsManager() {
         <div className="space-y-6">
           {!mappings.length ? (
             <div className="surface-card p-10 text-center">
-              <QrCode className="mx-auto h-10 w-10 text-[#81908a]" />
-              <h2 className="mt-4 text-xl font-semibold text-[#18332d]">
+              <QrCode className="mx-auto h-10 w-10 text-[#7a8b9d]" />
+              <h2 className="mt-4 text-xl font-semibold text-[#0b1f3a]">
                 No classes are enabled yet
               </h2>
-              <p className="mt-2 text-sm text-[#60706b]">
+              <p className="mt-2 text-sm text-[#66798d]">
                 Add a CCB class before setting attendance times.
               </p>
               <Link
                 href="/admin/groups"
-                className="mt-5 inline-flex rounded-xl bg-[#167365] px-4 py-2.5 text-sm font-semibold text-white"
+                className="mt-5 inline-flex rounded-xl bg-[#0866ff] px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Manage classes
               </Link>
@@ -531,16 +531,16 @@ export function AdminSessionsManager() {
           ) : (
             <>
               <form onSubmit={saveSchedule} className="surface-card p-5 sm:p-7">
-                <div className="flex flex-col gap-4 border-b border-[#e8ebe6] pb-6 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 border-b border-[#e2ebf4] pb-6 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[#167365]">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[#0866ff]">
                       <CalendarDays className="h-4 w-4" />
                       Regular schedule
                     </div>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-[#18332d]">
+                    <h2 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-[#0b1f3a]">
                       When does this class meet?
                     </h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#60706b]">
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66798d]">
                       Add every usual day and time. Check-in opens 30 minutes
                       before class and closes 30 minutes after it ends.
                     </p>
@@ -549,7 +549,7 @@ export function AdminSessionsManager() {
                     type="button"
                     onClick={addScheduleSlot}
                     disabled={schedule.length >= 14}
-                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#cbd7d1] bg-white px-4 py-2.5 text-sm font-semibold text-[#34544b] transition hover:bg-[#f5f8f6] disabled:opacity-50"
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#cbd9e7] bg-white px-4 py-2.5 text-sm font-semibold text-[#2b4966] transition hover:bg-[#f8fbff] disabled:opacity-50"
                   >
                     <Plus className="h-4 w-4" />
                     Add another time
@@ -558,7 +558,7 @@ export function AdminSessionsManager() {
 
                 <div className="mt-6 space-y-3">
                   {scheduleLoading ? (
-                    <div className="flex items-center justify-center py-12 text-sm text-[#667670]">
+                    <div className="flex items-center justify-center py-12 text-sm text-[#5f7187]">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Loading schedule
                     </div>
@@ -566,7 +566,7 @@ export function AdminSessionsManager() {
                     schedule.map((slot, index) => (
                       <div
                         key={slot.id ?? `new-${index}`}
-                        className="grid gap-3 rounded-2xl border border-[#dfe5e0] bg-[#fafbf8] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+                        className="grid gap-3 rounded-2xl border border-[#dce7f1] bg-[#f8fbff] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
                       >
                         <Field label="Day">
                           <select
@@ -629,10 +629,10 @@ export function AdminSessionsManager() {
                   )}
                 </div>
 
-                <div className="mt-6 flex justify-end border-t border-[#e8ebe6] pt-5">
+                <div className="mt-6 flex justify-end border-t border-[#e2ebf4] pt-5">
                   <button
                     disabled={isPending || scheduleLoading || !schedule.length}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#167365] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.2)] transition hover:bg-[#0f6156] disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0866ff] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(8,102,255,0.2)] transition hover:bg-[#0754d6] disabled:opacity-60"
                   >
                     {isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -649,14 +649,14 @@ export function AdminSessionsManager() {
                 className="surface-card overflow-hidden"
               >
                 <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
-                  <div className="bg-[#f2ece0] p-6 sm:p-7">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f1b86b] text-[#493a22]">
+                  <div className="bg-[#e6f8fc] p-6 sm:p-7">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0099cb] text-[#0754d6]">
                       <CalendarPlus className="h-5 w-5" />
                     </div>
-                    <h2 className="mt-5 text-2xl font-semibold tracking-[-0.025em] text-[#3d3426]">
+                    <h2 className="mt-5 text-2xl font-semibold tracking-[-0.025em] text-[#0b1f3a]">
                       Special-case meeting
                     </h2>
-                    <p className="mt-3 text-sm leading-6 text-[#746956]">
+                    <p className="mt-3 text-sm leading-6 text-[#5f7187]">
                       Add a one-time class date that falls outside the regular
                       schedule. Nothing else about the class changes.
                     </p>
@@ -682,7 +682,7 @@ export function AdminSessionsManager() {
                     </Field>
                     <Field label="Starts">
                       <div className="relative">
-                        <Clock3 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#7b8a85]" />
+                        <Clock3 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#7a8b9d]" />
                         <input
                           type="time"
                           value={specialStart}
@@ -712,7 +712,7 @@ export function AdminSessionsManager() {
                     <div className="sm:col-span-2 flex justify-end">
                       <button
                         disabled={isPending}
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#493f30] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#332c22] disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#0866ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0754d6] disabled:opacity-60"
                       >
                         {isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -729,8 +729,8 @@ export function AdminSessionsManager() {
           )}
 
           {message ? (
-            <div className="flex items-start gap-3 rounded-2xl border border-[#cfe2db] bg-[#edf6f2] p-4 text-sm leading-6 text-[#34544b]">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#167365]" />
+            <div className="flex items-start gap-3 rounded-2xl border border-[#cfe3ff] bg-[#eef6ff] p-4 text-sm leading-6 text-[#2b4966]">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#0866ff]" />
               <p>{message}</p>
             </div>
           ) : null}
@@ -740,14 +740,14 @@ export function AdminSessionsManager() {
       <section className="surface-card p-5 sm:p-7">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#167365]">
+            <p className="text-sm font-semibold text-[#0866ff]">
               Attendance history
             </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#18332d]">
+            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#0b1f3a]">
               {selectedMapping?.group_name ?? "Class meetings"}
             </h2>
           </div>
-          <p className="text-sm text-[#71807b]">
+          <p className="text-sm text-[#6a7c91]">
             {selectedSessions.length} meeting
             {selectedSessions.length === 1 ? "" : "s"}
           </p>
@@ -758,10 +758,10 @@ export function AdminSessionsManager() {
             selectedSessions.map((session) => (
               <article
                 key={session.id}
-                className="flex flex-col gap-4 rounded-2xl border border-[#e0e5e0] bg-[#fbfbf8] p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-4 rounded-2xl border border-[#dce7f1] bg-[#f8fbff] p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e5f2ed] text-[#147466]">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f8fc] text-[#007fa9]">
                     {session.meeting_kind === "special" ? (
                       <CalendarPlus className="h-5 w-5" />
                     ) : (
@@ -770,17 +770,17 @@ export function AdminSessionsManager() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="truncate font-semibold text-[#203b34]">
+                      <h3 className="truncate font-semibold text-[#132b48]">
                         {session.title}
                       </h3>
                       <StatusBadge status={session.status} />
                       {session.meeting_kind === "special" ? (
-                        <span className="rounded-full bg-[#fff1d8] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#876025]">
+                        <span className="rounded-full bg-[#e6f8fc] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#007fa9]">
                           Special
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-sm text-[#667670]">
+                    <p className="mt-1 text-sm text-[#5f7187]">
                       {formatMeetingDate(
                         session.occurrence_start_at,
                         session.occurrence_date
@@ -788,7 +788,7 @@ export function AdminSessionsManager() {
                     </p>
                     <Link
                       href={`/admin/sessions/${session.id}`}
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#167365] hover:underline"
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#0866ff] hover:underline"
                     >
                       View attendance
                       <ExternalLink className="h-3 w-3" />
@@ -806,7 +806,7 @@ export function AdminSessionsManager() {
                       )
                     }
                     disabled={isPending}
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#ced7d1] bg-white px-3 py-2 text-xs font-semibold text-[#36534b] transition hover:bg-[#f1f5f2] disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#cbd9e7] bg-white px-3 py-2 text-xs font-semibold text-[#2b4966] transition hover:bg-[#eef6ff] disabled:opacity-50"
                   >
                     {session.status === "active" ? (
                       <X className="h-3.5 w-3.5" />
@@ -829,12 +829,12 @@ export function AdminSessionsManager() {
               </article>
             ))
           ) : (
-            <div className="rounded-2xl border border-dashed border-[#cdd5d0] bg-[#fafaf7] p-10 text-center">
-              <CalendarDays className="mx-auto h-8 w-8 text-[#8b9994]" />
-              <p className="mt-3 font-semibold text-[#29453e]">
+            <div className="rounded-2xl border border-dashed border-[#cbd9e7] bg-[#f8fbff] p-10 text-center">
+              <CalendarDays className="mx-auto h-8 w-8 text-[#7a8b9d]" />
+              <p className="mt-3 font-semibold text-[#17304d]">
                 No attendance records yet
               </p>
-              <p className="mt-1 text-sm text-[#71807b]">
+              <p className="mt-1 text-sm text-[#6a7c91]">
                 Scheduled meetings appear here after the first check-in.
               </p>
             </div>
@@ -856,7 +856,7 @@ function Field({
 }) {
   return (
     <label className={className ?? "block"}>
-      <span className="text-sm font-semibold text-[#38534c]">{label}</span>
+      <span className="text-sm font-semibold text-[#29415d]">{label}</span>
       <div className="mt-1.5">{children}</div>
     </label>
   );
@@ -865,10 +865,10 @@ function Field({
 function StatusBadge({ status }: { status: SessionRow["status"] }) {
   const style =
     status === "active"
-      ? "bg-[#dff3ec] text-[#12675b]"
+      ? "bg-[#e6f8fc] text-[#007fa9]"
       : status === "cancelled"
         ? "bg-[#fff0ec] text-[#9a4639]"
-        : "bg-[#eceeea] text-[#64736e]";
+        : "bg-[#e8eef5] text-[#66798d]";
 
   return (
     <span

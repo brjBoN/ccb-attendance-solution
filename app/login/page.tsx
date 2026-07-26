@@ -21,8 +21,8 @@ export default async function LoginPage({
   if (admin) redirect(next);
 
   return (
-    <main className="grid min-h-screen bg-[#f3f2ec] lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="relative hidden overflow-hidden bg-[#12362f] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+    <main className="grid min-h-screen bg-[#f4f8fc] lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="relative hidden overflow-hidden bg-[#071f3f] p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div
           aria-hidden="true"
           className="absolute -right-20 top-24 h-80 w-80 rounded-full border-[56px] border-white/[0.04]"
@@ -37,7 +37,7 @@ export default async function LoginPage({
         />
 
         <div className="relative max-w-lg">
-          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#a8decf]">
+          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#74d9f1]">
             Heritage Church admin
           </p>
           <h1 className="mt-4 text-5xl font-semibold leading-[1.02] tracking-[-0.045em]">
@@ -61,7 +61,7 @@ export default async function LoginPage({
 
       <section className="flex items-center justify-center px-5 py-10 sm:px-10">
         <div className="w-full max-w-md">
-          <div className="mb-8 rounded-2xl bg-[#12362f] px-4 py-3 lg:hidden">
+          <div className="mb-8 rounded-2xl bg-[#071f3f] px-4 py-3 lg:hidden">
             <Image
               src="/heritage-church-logo.png"
               alt="Heritage Church"
@@ -74,7 +74,7 @@ export default async function LoginPage({
           <AuthForm next={next} initialMessage={query.error ?? null} />
           <Link
             href="/teacher"
-            className="mt-5 flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold text-[#167365] transition hover:bg-white/55"
+            className="mt-5 flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold text-[#0866ff] transition hover:bg-white/55"
           >
             Teacher check-in does not need a login
           </Link>
@@ -87,7 +87,7 @@ export default async function LoginPage({
 function Benefit({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
-      <CheckCircle2 className="h-4 w-4 text-[#f1b86b]" />
+      <CheckCircle2 className="h-4 w-4 text-[#0099cb]" />
       {children}
     </div>
   );

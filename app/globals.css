@@ -4,13 +4,16 @@
 
 :root {
   color-scheme: light;
-  --canvas: #f3f2ec;
-  --ink: #18332d;
-  --muted: #667670;
-  --line: #d9ddd7;
-  --brand: #167365;
-  --brand-dark: #12362f;
-  --accent: #f1b86b;
+  --canvas: #f4f8fc;
+  --ink: #0b1f3a;
+  --muted: #5f7187;
+  --line: #d7e2ee;
+  --brand: #0866ff;
+  --brand-hover: #0754d6;
+  --brand-dark: #071f3f;
+  --accent: #0099cb;
+  --soft-blue: #eaf4ff;
+  --soft-cyan: #e6f8fc;
 }
 
 * {
@@ -27,7 +30,7 @@ body {
   min-height: 100%;
   margin: 0;
   background:
-    radial-gradient(circle at 12% 4%, rgba(255, 255, 255, 0.9), transparent 26rem),
+    radial-gradient(circle at 12% 4%, rgba(255, 255, 255, 0.96), transparent 26rem),
     var(--canvas);
   color: var(--ink);
   font-family:
@@ -73,22 +76,22 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(22, 115, 101, 0.24);
+  outline: 3px solid rgba(8, 102, 255, 0.28);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: #cbe9df;
-  color: #12362f;
+  background: #cfe3ff;
+  color: #071f3f;
 }
 
 @layer components {
   .form-input {
-    @apply w-full rounded-xl border border-[#ccd5cf] bg-white px-3 py-2.5 text-sm text-[#203b34] outline-none transition placeholder:text-[#98a49f] focus:border-[#3a8e80] focus:ring-4 focus:ring-[#bfe4da]/40;
+    @apply w-full rounded-xl border border-[#cbd9e7] bg-white px-3 py-2.5 text-sm text-[#0b1f3a] outline-none transition placeholder:text-[#91a0b0] focus:border-[#0866ff] focus:ring-4 focus:ring-[#b9d6ff]/45;
   }
 
   .surface-card {
-    @apply rounded-[28px] border border-[#d9ddd7] bg-white shadow-[0_20px_60px_rgba(24,45,39,0.07)];
+    @apply rounded-[28px] border border-[#d7e2ee] bg-white shadow-[0_20px_60px_rgba(7,31,63,0.08)];
   }
 }
 

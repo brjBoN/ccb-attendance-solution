@@ -368,8 +368,8 @@ ${expected}`
                     <div className="w-full max-w-md space-y-3">
                       {existing ? (
                         <>
-                          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                            <p className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                          <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3">
+                            <p className="flex items-center gap-2 text-sm font-semibold text-cyan-950">
                               <Check className="h-4 w-4" /> {
                                 !existing.enabled
                                   ? "QR check-in disabled"
@@ -378,7 +378,7 @@ ${expected}`
                                     : "QR setup needs class times"
                               }
                             </p>
-                            <p className="mt-1 text-xs leading-5 text-emerald-800">
+                            <p className="mt-1 text-xs leading-5 text-cyan-800">
                               {existing.ccb_event_id
                                 ? `Using existing CCB attendance event ${existing.ccb_event_id}.`
                                 : "The class attendance event will be created when its schedule is saved."}
@@ -574,7 +574,7 @@ ${expected}`
 
             {enableReview.events.length ? (
               <div className="mt-6 space-y-3">
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm leading-6 text-cyan-950">
                   CCB already has {enableReview.events.length === 1 ? "an attendance event" : "attendance events"} linked to this exact class. Reusing one keeps attendance together and prevents a duplicate event.
                 </div>
 
@@ -593,7 +593,7 @@ ${expected}`
                     />
                     <span>
                       <span className="font-semibold text-slate-950">Use an existing CCB attendance event</span>
-                      <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-800">
+                      <span className="ml-2 rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-cyan-800">
                         Recommended
                       </span>
                     </span>
@@ -643,7 +643,7 @@ ${expected}`
 
               </div>
             ) : (
-              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+              <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950">
                 Nothing was changed in CCB. The app can enable the class now and create its single attendance event only after the regular class schedule is saved.
               </div>
             )}

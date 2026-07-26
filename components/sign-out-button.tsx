@@ -23,7 +23,7 @@ export function SignOutButton({
       className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition ${
         dark
           ? "border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] hover:text-white"
-          : "border-[#cfd7d1] bg-white text-[#4c625b] shadow-sm hover:bg-[#f8faf8]"
+          : "border-[#cbd9e7] bg-white text-[#51677f] shadow-sm hover:bg-[#f8fbff]"
       }`}
     >
       <LogOut className="h-4 w-4" />

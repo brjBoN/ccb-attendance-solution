@@ -54,15 +54,15 @@ export function AuthForm({
   }
 
   return (
-    <div className="w-full rounded-[28px] border border-[#d9ddd7] bg-white p-6 shadow-[0_24px_70px_rgba(24,45,39,0.1)] sm:p-8">
+    <div className="w-full rounded-[28px] border border-[#d7e2ee] bg-white p-6 shadow-[0_24px_70px_rgba(7,31,63,0.1)] sm:p-8">
       <div className="mb-7">
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#167365]">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#0866ff]">
           Admin access
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-[#18332d]">
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-[#0b1f3a]">
           {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-[#6d7b76]">
+        <p className="mt-2 text-sm leading-6 text-[#66798d]">
           {mode === "signin"
             ? "Sign in to change class times, review guests, and manage attendance."
             : "Create a sign-in, then ask an administrator to grant access."}
@@ -71,7 +71,7 @@ export function AuthForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">
-          <span className="text-sm font-semibold text-[#38534c]">Email</span>
+          <span className="text-sm font-semibold text-[#29415d]">Email</span>
           <input
             name="email"
             type="email"
@@ -82,7 +82,7 @@ export function AuthForm({
         </label>
 
         <label className="block">
-          <span className="text-sm font-semibold text-[#38534c]">Password</span>
+          <span className="text-sm font-semibold text-[#29415d]">Password</span>
           <input
             name="password"
             type="password"
@@ -95,21 +95,21 @@ export function AuthForm({
 
         <button
           disabled={isPending}
-          className="w-full rounded-xl bg-[#167365] px-4 py-3 font-semibold text-white shadow-[0_10px_25px_rgba(22,115,101,0.18)] transition hover:bg-[#0f6156] disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-[#0866ff] px-4 py-3 font-semibold text-white shadow-[0_10px_25px_rgba(8,102,255,0.18)] transition hover:bg-[#0754d6] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
 
       {message ? (
-        <p className="mt-4 rounded-xl bg-[#eef5f1] p-3 text-sm leading-6 text-[#456159]">
+        <p className="mt-4 rounded-xl bg-[#eef6ff] p-3 text-sm leading-6 text-[#3f5b78]">
           {message}
         </p>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-[#e5e8e3] pt-5 text-sm">
+      <div className="mt-6 flex flex-col gap-3 border-t border-[#e2ebf4] pt-5 text-sm">
         {mode === "signin" ? (
-          <Link href="/forgot-password" className="font-semibold text-[#167365] hover:underline">
+          <Link href="/forgot-password" className="font-semibold text-[#0866ff] hover:underline">
             Forgot password?
           </Link>
         ) : null}
@@ -117,7 +117,7 @@ export function AuthForm({
         <button
           type="button"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="text-left font-semibold text-[#167365] hover:underline"
+          className="text-left font-semibold text-[#0866ff] hover:underline"
         >
           {mode === "signin"
             ? "Need an account? Create one"

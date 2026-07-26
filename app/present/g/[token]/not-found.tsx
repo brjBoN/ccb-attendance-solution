@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function PresentationNotFound() {
   return (
-    <main className="flex min-h-[100svh] items-center justify-center bg-[#0d2d27] px-5 py-10 text-center text-white">
+    <main className="flex min-h-[100svh] items-center justify-center bg-[#061a35] px-5 py-10 text-center text-white">
       <div className="w-full max-w-xl rounded-[30px] border border-white/10 bg-white/[0.07] p-8 shadow-2xl backdrop-blur sm:p-12">
         <Image
           src="/heritage-church-logo.png"

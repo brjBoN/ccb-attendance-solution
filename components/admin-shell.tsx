@@ -50,8 +50,8 @@ export function AdminShell({
   const mobileBackLabel = onAdminHome ? "Start" : "Admin";
 
   return (
-    <div className="min-h-screen bg-[#f3f2ec]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[276px] flex-col bg-[#12362f] p-4 text-white lg:flex">
+    <div className="min-h-screen bg-[#f4f8fc]">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[276px] flex-col bg-[#071f3f] p-4 text-white lg:flex">
         <Link
           href="/"
           className="flex min-h-[104px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3"
@@ -76,7 +76,7 @@ export function AdminShell({
           </Link>
           <Link
             href="/teacher"
-            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#f1b86b]/30 bg-[#f1b86b]/10 px-2 text-xs font-semibold text-[#f5c985] transition hover:bg-[#f1b86b]/15"
+            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#0099cb]/30 bg-[#0099cb]/10 px-2 text-xs font-semibold text-[#74d9f1] transition hover:bg-[#0099cb]/15"
           >
             <QrCode className="h-4 w-4" />
             Check in
@@ -106,29 +106,29 @@ export function AdminShell({
       </aside>
 
       <div className="lg:pl-[276px]">
-        <header className="sticky top-0 z-20 border-b border-[#dfe2dc] bg-[#f8f7f2]/95 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-[#dce7f1] bg-[#f8fbff]/95 backdrop-blur-xl">
           <div className="flex min-h-[68px] items-center justify-between gap-4 px-3 sm:px-6 lg:min-h-[72px] lg:px-8">
             <Link
               href={mobileBackHref}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-[#29473f] transition hover:bg-[#eef1ed] lg:hidden"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-[#17304d] transition hover:bg-[#eef6ff] lg:hidden"
             >
               <ArrowLeft className="h-4 w-4" />
               {mobileBackLabel}
             </Link>
 
             <div className="hidden lg:block">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7a8984]">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7a8b9d]">
                 Admin mode
               </p>
-              <p className="mt-1 text-sm font-semibold text-[#29473f]">
+              <p className="mt-1 text-sm font-semibold text-[#17304d]">
                 {admin.name || admin.email}
-                <span className="ml-2 rounded-full bg-[#e3ebe7] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#4e655e]">
+                <span className="ml-2 rounded-full bg-[#eaf4ff] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#4e6378]">
                   {admin.role.replace("_", " ")}
                 </span>
               </p>
             </div>
 
-            <p className="absolute left-1/2 -translate-x-1/2 text-sm font-bold text-[#18332d] lg:hidden">
+            <p className="absolute left-1/2 -translate-x-1/2 text-sm font-bold text-[#0b1f3a] lg:hidden">
               {onAdminHome ? "Admin" : "Heritage Admin"}
             </p>
 
@@ -160,7 +160,7 @@ function AdminNavLink({
       href={href}
       className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
         active
-          ? "bg-[#dff3ec] text-[#153b33] shadow-sm"
+          ? "bg-[#e6f8fc] text-[#071f3f] shadow-sm"
           : "text-white/68 hover:bg-white/[0.07] hover:text-white"
       }`}
     >

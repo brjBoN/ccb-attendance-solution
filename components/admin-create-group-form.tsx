@@ -167,7 +167,7 @@ export function AdminCreateGroupForm() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">
+      <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm leading-6 text-cyan-950">
         Submitting this form creates a real group in CCB. CCB deletion and inactivation services remain blocked.
       </div>
 
@@ -349,18 +349,18 @@ export function AdminCreateGroupForm() {
       ) : null}
 
       {result?.status === "created" ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">
+        <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm leading-6 text-cyan-950">
           <div className="flex gap-3">
             <CheckCircle2 className="mt-0.5 h-5 w-5" />
             <div>
               <strong>{result.message}</strong>
               {result.ccbGroupId ? <p>CCB Group ID: {result.ccbGroupId}</p> : null}
               <div className="mt-3 flex flex-wrap gap-4">
-                <Link href="/admin/sessions" className="inline-flex font-semibold text-emerald-800 underline">
+                <Link href="/admin/sessions" className="inline-flex font-semibold text-cyan-800 underline">
                   Open this class and its permanent QR code
                 </Link>
                 {result.checklistUrl ? (
-                  <Link href={result.checklistUrl} className="inline-flex font-semibold text-emerald-800 underline">
+                  <Link href={result.checklistUrl} className="inline-flex font-semibold text-cyan-800 underline">
                     Finish CCB setup checklist
                   </Link>
                 ) : null}

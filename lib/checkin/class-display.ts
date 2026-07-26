@@ -76,7 +76,7 @@ export async function getClassPresentation(slug: string) {
     margin: 3,
     width: 1200,
     errorCorrectionLevel: "M",
-    color: { dark: "#12362fff", light: "#ffffffff" }
+    color: { dark: "#071f3fff", light: "#ffffffff" }
   });
 
   return {

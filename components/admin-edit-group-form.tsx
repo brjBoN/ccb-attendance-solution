@@ -111,7 +111,7 @@ export function AdminEditGroupForm({ group }: { group: EditableGroup }) {
   return (
     <form onSubmit={submit} className="space-y-6">
       {group.inactive ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
           This group is currently inactive in CCB. Saving other fields will leave its inactive status unchanged.
         </div>
       ) : null}
@@ -167,7 +167,7 @@ export function AdminEditGroupForm({ group }: { group: EditableGroup }) {
         <Field label="UDF pulldown 3 ID"><input name="udfGroupPulldown3Id" className={inputClass} /></Field>
       </Section>
 
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-blue-950">
         This form updates supported CCB fields immediately. It does not expose inactive/delete actions or change the main leader.
       </div>
 
@@ -177,7 +177,7 @@ export function AdminEditGroupForm({ group }: { group: EditableGroup }) {
       </button>
 
       {message ? (
-        <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
+        <div className="flex gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm text-cyan-950">
           <CheckCircle2 className="h-5 w-5" /> {message}
         </div>
       ) : null}

@@ -6,7 +6,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#12362f"
+  themeColor: "#071f3f"
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,24 +30,19 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s · Heritage Church Attendance"
     },
     description,
+    icons: {
+      icon: "/heritage-logo-color.png",
+      apple: "/heritage-logo-color.png"
+    },
     openGraph: {
       type: "website",
       title,
-      description,
-      images: [
-        {
-          url: "/og.png",
-          width: 1734,
-          height: 907,
-          alt: "Heritage Church Attendance"
-        }
-      ]
+      description
     },
     twitter: {
       card: "summary_large_image",
       title,
-      description,
-      images: ["/og.png"]
+      description
     }
   };
 }

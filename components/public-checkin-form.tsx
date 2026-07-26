@@ -171,16 +171,16 @@ export function PublicCheckinForm({ token }: { token: string }) {
 
   if (wasSuccessful) {
     return (
-      <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+      <div className="mt-6 rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-cyan-100 text-cyan-700">
           <CheckCircle2 className="h-6 w-6" />
         </div>
-        <h2 className="mt-4 text-xl font-bold text-emerald-950">
+        <h2 className="mt-4 text-xl font-bold text-cyan-950">
           {mode === "guest" ? "Sent for review" : "Check-in complete"}
         </h2>
-        <p className="mt-2 text-sm leading-6 text-emerald-900">{finalMessage}</p>
+        <p className="mt-2 text-sm leading-6 text-cyan-900">{finalMessage}</p>
         {selected ? (
-          <p className="mt-3 text-xs text-emerald-800">
+          <p className="mt-3 text-xs text-cyan-800">
             Selected: {selected.fullName ?? [selected.firstName, selected.lastName].filter(Boolean).join(" ")}
           </p>
         ) : null}
