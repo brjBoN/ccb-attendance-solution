@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { z } from "zod";
 import { ensureCcbGroupParticipant } from "@/lib/attendance/group-membership";
+import { signProfileUpdateTicket } from "@/lib/checkin/profile-update-ticket";
 import { getInternalCheckinSessionByToken } from "@/lib/checkin/session-token";
+import { getServerEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { syncAttendanceCheckin } from "@/lib/attendance/sync";
 import { checkPublicRateLimit } from "@/lib/security/rate-limit";
 
 const submitSchema = z.object({
-  ccbIndividualId: z.string().trim().min(1),
+  ccbIndividualId: z.string().trim().regex(/^\d{1,20}$/),
   displayName: z.string().trim().max(160).optional().or(z.literal("")),
   idempotencyKey: z.string().trim().max(160).optional().or(z.literal(""))
 });
@@ -49,6 +51,10 @@ export async function POST(
   const supabase = createSupabaseAdminClient();
   const session = sessionResult.session;
   const individualId = parsed.data.ccbIndividualId;
+  const profileUpdateTicket = signProfileUpdateTicket(
+    { sessionId: session.id, individualId },
+    getServerEnv().SUPABASE_SERVICE_ROLE_KEY
+  );
   const idempotencyKey =
     parsed.data.idempotencyKey ||
     crypto
@@ -72,7 +78,8 @@ export async function POST(
     return NextResponse.json({
       status: "already_checked_in",
       message: "You are already checked in for this session.",
-      checkin: existing
+      checkin: existing,
+      profileUpdateTicket
     });
   }
 
@@ -108,7 +115,8 @@ export async function POST(
     if (insertError.code === "23505") {
       return NextResponse.json({
         status: "already_checked_in",
-        message: "You are already checked in for this session."
+        message: "You are already checked in for this session.",
+        profileUpdateTicket
       });
     }
 
@@ -137,7 +145,8 @@ export async function POST(
     status: sync.status === "synced" ? "checked_in_synced" : "checked_in_local",
     message,
     groupMembership,
-    checkin
+    checkin,
+    profileUpdateTicket
   });
 }
 

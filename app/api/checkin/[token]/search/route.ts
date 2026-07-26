@@ -7,11 +7,11 @@ import { CcbClientError } from "@/lib/ccb/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { checkPublicRateLimit } from "@/lib/security/rate-limit";
 
+const MAX_PUBLIC_MATCHES = 50;
+
 const searchSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required.").max(80),
-  lastName: z.string().trim().min(1, "Last name is required.").max(80),
-  phone: z.string().trim().max(40).optional().or(z.literal("")),
-  email: z.string().trim().email().optional().or(z.literal(""))
+  lastName: z.string().trim().min(1, "Last name is required.").max(80)
 });
 
 export async function POST(
@@ -54,9 +54,7 @@ export async function POST(
     const client = createCcbClient();
     const people = await client.searchIndividuals({
       firstName: normalizedFirstName,
-      lastName: normalizedLastName,
-      phone: parsed.data.phone || undefined,
-      email: parsed.data.email || undefined
+      lastName: normalizedLastName
     });
 
     const supabase = createSupabaseAdminClient();
@@ -67,7 +65,9 @@ export async function POST(
       result_count: people.length
     });
 
-    const publicResults = people.slice(0, 20).map(toPublicIndividualMatch);
+    const publicResults = people
+      .slice(0, MAX_PUBLIC_MATCHES)
+      .map(toPublicIndividualMatch);
 
     return NextResponse.json({
       count: people.length,

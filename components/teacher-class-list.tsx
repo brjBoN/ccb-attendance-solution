@@ -28,7 +28,7 @@ export function TeacherClassList({ classes }: { classes: TeacherClass[] }) {
     <>
       <div className="sticky top-0 z-10 -mx-4 border-y border-[#dce7f1] bg-[#f4f8fc]/95 px-4 py-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
         <label className="relative block">
-          <span className="sr-only">Search your classes</span>
+          <span className="sr-only">Search your groups</span>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6a7c91]" />
           <input
             value={query}
@@ -36,14 +36,14 @@ export function TeacherClassList({ classes }: { classes: TeacherClass[] }) {
             type="search"
             inputMode="search"
             autoComplete="off"
-            placeholder="Search your classes"
+            placeholder="Search your groups"
             className="teacher-class-search h-14 w-full rounded-2xl border border-[#cbd9e7] bg-white pl-12 pr-12 text-base font-medium text-[#0b1f3a] shadow-[0_10px_28px_rgba(7,31,63,0.06)] outline-none transition placeholder:font-normal placeholder:text-[#91a0b0] focus:border-[#3c8cff] focus:ring-4 focus:ring-[#b9d6ff]/40"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery("")}
-              aria-label="Clear class search"
+              aria-label="Clear group search"
               className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#66798d] transition hover:bg-[#eef6ff]"
             >
               <X className="h-4 w-4" />
@@ -56,10 +56,10 @@ export function TeacherClassList({ classes }: { classes: TeacherClass[] }) {
         <p className="text-sm font-semibold text-[#36506c]">
           {hasQuery
             ? `${filteredClasses.length} matching ${
-                filteredClasses.length === 1 ? "class" : "classes"
+                filteredClasses.length === 1 ? "group" : "groups"
               }`
             : `${classes.length} ${
-                classes.length === 1 ? "class" : "classes"
+                classes.length === 1 ? "group" : "groups"
               } available`}
         </p>
         {hasQuery ? (
@@ -142,10 +142,10 @@ export function TeacherClassList({ classes }: { classes: TeacherClass[] }) {
         <div className="rounded-[26px] border border-dashed border-[#cbd9e7] bg-white/65 px-6 py-14 text-center">
           <SearchX className="mx-auto h-9 w-9 text-[#7a8b9d]" />
           <h2 className="mt-4 text-lg font-semibold text-[#17304d]">
-            No class matches “{query.trim()}”
+            No group matches “{query.trim()}”
           </h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#6a7c91]">
-            Try a shorter part of the class name.
+            Try a shorter part of the group name.
           </p>
           <button
             type="button"

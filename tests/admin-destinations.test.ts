@@ -7,8 +7,8 @@ function keys(role: Parameters<typeof getAdminDestinations>[0]) {
 
 describe("admin destination visibility", () => {
   it("shows every admin tool to owner and admin roles", () => {
-    expect(keys("owner")).toHaveLength(7);
-    expect(keys("admin")).toHaveLength(7);
+    expect(keys("owner")).toHaveLength(8);
+    expect(keys("admin")).toHaveLength(8);
   });
 
   it("shows group management and scoped attendance tools to group managers", () => {

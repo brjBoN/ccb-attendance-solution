@@ -13,10 +13,10 @@ export default function PresentationNotFound() {
           className="mx-auto h-auto w-full max-w-[240px] mix-blend-screen"
         />
         <h1 className="mt-8 text-3xl font-semibold tracking-[-0.035em]">
-          This class display is unavailable
+          This group display is unavailable
         </h1>
         <p className="mt-3 text-sm leading-6 text-white/60 sm:text-base">
-          Ask the class administrator for the current teacher display link.
+          Ask the group administrator for the current teacher display link.
         </p>
       </div>
     </main>

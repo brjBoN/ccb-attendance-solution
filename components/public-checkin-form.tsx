@@ -11,6 +11,7 @@ import {
 import {
   CheckCircle2,
   Loader2,
+  PencilLine,
   Search,
   UserCheck,
   UserPlus,
@@ -46,12 +47,18 @@ type SubmitResponse = {
   status: string;
   message: string;
   error?: string;
+  profileUpdateTicket?: string;
+};
+
+type ProfileUpdateResponse = {
+  status?: string;
+  message?: string;
+  error?: string;
 };
 
 type SearchInput = {
   firstName: string;
   lastName: string;
-  phoneOrEmail: string;
 };
 
 export function PublicCheckinForm({
@@ -64,7 +71,6 @@ export function PublicCheckinForm({
   const [mode, setMode] = useState<"search" | "guest">("search");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [phoneOrEmail, setPhoneOrEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestNotes, setGuestNotes] = useState("");
@@ -73,13 +79,24 @@ export function PublicCheckinForm({
   const [message, setMessage] = useState<string | null>(null);
   const [finalMessage, setFinalMessage] = useState<string | null>(null);
   const [wasSuccessful, setWasSuccessful] = useState(false);
-  const [rememberOnDevice, setRememberOnDevice] = useState(false);
   const [savedName, setSavedName] = useState<SavedCheckinName | null>(null);
   const [usingSavedName, setUsingSavedName] = useState(false);
+  const [profileUpdateTicket, setProfileUpdateTicket] = useState<string | null>(
+    null
+  );
+  const [showProfileUpdateForm, setShowProfileUpdateForm] = useState(false);
+  const [profileUpdateEmail, setProfileUpdateEmail] = useState("");
+  const [profileUpdateMobilePhone, setProfileUpdateMobilePhone] = useState("");
+  const [profileUpdateHomePhone, setProfileUpdateHomePhone] = useState("");
+  const [profileUpdateMessage, setProfileUpdateMessage] = useState<
+    string | null
+  >(null);
+  const [profileUpdateSent, setProfileUpdateSent] = useState(false);
   const [isPending, startTransition] = useTransition();
   const searchRequestRef = useRef<AbortController | null>(null);
   const searchSequenceRef = useRef(0);
   const autoSearchTokenRef = useRef<string | null>(null);
+  const autoSearchTimerRef = useRef<number | null>(null);
 
   const performSearch = useCallback(
     (
@@ -94,12 +111,6 @@ export function PublicCheckinForm({
       const controller = new AbortController();
       const sequence = ++searchSequenceRef.current;
       searchRequestRef.current = controller;
-      const contactValue = input.phoneOrEmail.trim();
-      const optionalContact = !contactValue
-        ? {}
-        : contactValue.includes("@")
-          ? { email: contactValue }
-          : { phone: contactValue };
 
       startTransition(async () => {
         setMessage(
@@ -111,6 +122,13 @@ export function PublicCheckinForm({
         setWasSuccessful(false);
         setSelected(null);
         setResults([]);
+        setProfileUpdateTicket(null);
+        setShowProfileUpdateForm(false);
+        setProfileUpdateEmail("");
+        setProfileUpdateMobilePhone("");
+        setProfileUpdateHomePhone("");
+        setProfileUpdateMessage(null);
+        setProfileUpdateSent(false);
 
         try {
           const response = await fetch(
@@ -122,8 +140,7 @@ export function PublicCheckinForm({
               },
               body: JSON.stringify({
                 firstName: normalizedFirstName,
-                lastName: normalizedLastName,
-                ...optionalContact
+                lastName: normalizedLastName
               }),
               signal: controller.signal
             }
@@ -156,7 +173,7 @@ export function PublicCheckinForm({
           const welcomePrefix = source === "saved" ? "Welcome back. " : "";
           if (data.truncated) {
             setMessage(
-              `${welcomePrefix}Found ${data.count} possible matches. Showing the first ${data.results.length}. Add phone/email if you need to narrow it down.`
+              `${welcomePrefix}Found ${data.count} possible matches. Showing the first ${data.results.length}. If you do not see yourself, ask a leader for help.`
             );
           } else {
             setMessage(
@@ -182,6 +199,10 @@ export function PublicCheckinForm({
   );
 
   useEffect(() => {
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
     searchRequestRef.current?.abort();
     searchRequestRef.current = null;
     searchSequenceRef.current += 1;
@@ -189,17 +210,21 @@ export function PublicCheckinForm({
     setMode("search");
     setFirstName("");
     setLastName("");
-    setPhoneOrEmail("");
     setResults([]);
     setSelected(null);
     setMessage(null);
     setFinalMessage(null);
     setWasSuccessful(false);
-    setRememberOnDevice(false);
     setSavedName(null);
     setUsingSavedName(false);
+    setProfileUpdateTicket(null);
+    setShowProfileUpdateForm(false);
+    setProfileUpdateEmail("");
+    setProfileUpdateMobilePhone("");
+    setProfileUpdateHomePhone("");
+    setProfileUpdateMessage(null);
+    setProfileUpdateSent(false);
 
-    let timerId: number | null = null;
     let searchWhenVisible: (() => void) | null = null;
 
     if (canRememberName && savedNameStorageKey(token)) {
@@ -211,7 +236,6 @@ export function PublicCheckinForm({
       if (remembered) {
         setFirstName(remembered.firstName);
         setLastName(remembered.lastName);
-        setRememberOnDevice(true);
         setSavedName(remembered);
         setUsingSavedName(true);
 
@@ -223,12 +247,12 @@ export function PublicCheckinForm({
             return;
           }
           autoSearchTokenRef.current = token;
-          timerId = window.setTimeout(() => {
+          autoSearchTimerRef.current = window.setTimeout(() => {
+            autoSearchTimerRef.current = null;
             performSearch(
               {
                 firstName: remembered.firstName,
-                lastName: remembered.lastName,
-                phoneOrEmail: ""
+                lastName: remembered.lastName
               },
               "saved"
             );
@@ -255,7 +279,10 @@ export function PublicCheckinForm({
     }
 
     return () => {
-      if (timerId !== null) window.clearTimeout(timerId);
+      if (autoSearchTimerRef.current !== null) {
+        window.clearTimeout(autoSearchTimerRef.current);
+        autoSearchTimerRef.current = null;
+      }
       if (searchWhenVisible) {
         document.removeEventListener("visibilitychange", searchWhenVisible);
       }
@@ -270,60 +297,158 @@ export function PublicCheckinForm({
 
   function searchPeople(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    performSearch({ firstName, lastName, phoneOrEmail });
+    performSearch({ firstName, lastName });
   }
 
-  function submitCheckin(match: PublicMatch) {
+  function changeName(field: "first" | "last", value: string) {
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+    autoSearchTokenRef.current = null;
+    searchRequestRef.current?.abort();
+    searchRequestRef.current = null;
+    searchSequenceRef.current += 1;
+
+    if (field === "first") setFirstName(value);
+    if (field === "last") setLastName(value);
+    setUsingSavedName(false);
+    setResults([]);
+    setSelected(null);
+    setMessage(null);
+    setFinalMessage(null);
+    setWasSuccessful(false);
+    setProfileUpdateTicket(null);
+    setShowProfileUpdateForm(false);
+    setProfileUpdateEmail("");
+    setProfileUpdateMobilePhone("");
+    setProfileUpdateHomePhone("");
+    setProfileUpdateMessage(null);
+    setProfileUpdateSent(false);
+  }
+
+  function submitCheckin(match: PublicMatch, openProfileUpdate = false) {
     startTransition(async () => {
       setSelected(match);
       setMessage("Submitting check-in...");
       setFinalMessage(null);
       setWasSuccessful(false);
+      setProfileUpdateTicket(null);
+      setShowProfileUpdateForm(false);
+      setProfileUpdateEmail("");
+      setProfileUpdateMobilePhone("");
+      setProfileUpdateHomePhone("");
+      setProfileUpdateMessage(null);
+      setProfileUpdateSent(false);
 
-      const response = await fetch(`/api/checkin/${encodeURIComponent(token)}/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ccbIndividualId: match.id,
-          displayName: match.fullName ?? [match.firstName, match.lastName].filter(Boolean).join(" "),
-          idempotencyKey: `${token.slice(0, 12)}:${match.id}`
-        })
-      });
+      try {
+        const response = await fetch(
+          `/api/checkin/${encodeURIComponent(token)}/submit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              ccbIndividualId: match.id,
+              displayName:
+                match.fullName ??
+                [match.firstName, match.lastName].filter(Boolean).join(" "),
+              idempotencyKey: `${token.slice(0, 12)}:${match.id}`
+            })
+          }
+        );
 
-      const data = (await response.json()) as SubmitResponse;
+        const data = (await response.json()) as SubmitResponse;
 
-      if (!response.ok) {
-        setFinalMessage(data.error ?? "Could not submit your check-in.");
-        setWasSuccessful(false);
-        return;
-      }
-
-      if (
-        canRememberName &&
-        rememberOnDevice
-      ) {
-        const storage = getBrowserStorage();
-        const rememberedFirstName =
-          match.firstName?.trim() || firstName.trim();
-        const rememberedLastName =
-          match.lastName?.trim() || lastName.trim();
-        const saved =
-          storage &&
-          writeSavedCheckinName(storage, token, {
-            firstName: rememberedFirstName,
-            lastName: rememberedLastName
-          });
-
-        if (saved && storage) {
-          setSavedName(readSavedCheckinName(storage, token));
-          setUsingSavedName(true);
+        if (!response.ok) {
+          setFinalMessage(data.error ?? "Could not submit your check-in.");
+          setWasSuccessful(false);
+          return;
         }
-      }
 
-      setFinalMessage(data.message);
-      setWasSuccessful(true);
+        if (canRememberName) {
+          const storage = getBrowserStorage();
+          const rememberedFirstName =
+            match.firstName?.trim() || firstName.trim();
+          const rememberedLastName =
+            match.lastName?.trim() || lastName.trim();
+          const saved =
+            storage &&
+            writeSavedCheckinName(storage, token, {
+              firstName: rememberedFirstName,
+              lastName: rememberedLastName
+            });
+
+          if (saved && storage) {
+            setSavedName(readSavedCheckinName(storage, token));
+            setUsingSavedName(true);
+          }
+        }
+
+        setProfileUpdateTicket(data.profileUpdateTicket ?? null);
+        setShowProfileUpdateForm(
+          openProfileUpdate && Boolean(data.profileUpdateTicket)
+        );
+        setFinalMessage(data.message);
+        setWasSuccessful(true);
+      } catch {
+        setFinalMessage(
+          "Could not submit your check-in. Check your connection and try again."
+        );
+        setWasSuccessful(false);
+      }
+    });
+  }
+
+  function submitProfileUpdate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!profileUpdateTicket) {
+      setProfileUpdateMessage(
+        "Check in again to start a new profile update request."
+      );
+      return;
+    }
+
+    startTransition(async () => {
+      setProfileUpdateMessage("Sending your update for review...");
+
+      try {
+        const response = await fetch(
+          `/api/checkin/${encodeURIComponent(token)}/profile-update-request`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              ticket: profileUpdateTicket,
+              email: profileUpdateEmail,
+              mobilePhone: profileUpdateMobilePhone,
+              homePhone: profileUpdateHomePhone
+            })
+          }
+        );
+        const data = (await response.json()) as ProfileUpdateResponse;
+
+        if (!response.ok) {
+          setProfileUpdateMessage(
+            data.error ?? "Could not send your profile update."
+          );
+          return;
+        }
+
+        setProfileUpdateMessage(
+          data.message ??
+            "Your profile update was sent to an administrator for review."
+        );
+        setProfileUpdateSent(true);
+        setShowProfileUpdateForm(false);
+      } catch {
+        setProfileUpdateMessage(
+          "Could not send your update. Check your connection and try again."
+        );
+      }
     });
   }
 
@@ -337,13 +462,18 @@ export function PublicCheckinForm({
 
     setSavedName(null);
     setUsingSavedName(false);
-    setRememberOnDevice(false);
+    setProfileUpdateTicket(null);
+    setShowProfileUpdateForm(false);
+    setProfileUpdateEmail("");
+    setProfileUpdateMobilePhone("");
+    setProfileUpdateHomePhone("");
+    setProfileUpdateMessage(null);
+    setProfileUpdateSent(false);
 
     if (resetForm) {
       setMode("search");
       setFirstName("");
       setLastName("");
-      setPhoneOrEmail("");
       setResults([]);
       setSelected(null);
       setMessage("Saved name cleared. Enter the name you want to use.");
@@ -401,11 +531,10 @@ export function PublicCheckinForm({
             Selected: {selected.fullName ?? [selected.firstName, selected.lastName].filter(Boolean).join(" ")}
           </p>
         ) : null}
-        {mode === "search" && savedName && rememberOnDevice ? (
+        {mode === "search" && savedName ? (
           <div className="mt-4 rounded-xl border border-cyan-200 bg-white/70 px-3 py-2.5 text-xs leading-5 text-cyan-900">
             <p>
-              Your name is saved on this personal device for faster group
-              check-in next time.
+              Your name was saved for faster group check-in next time.
             </p>
             <button
               type="button"
@@ -414,6 +543,128 @@ export function PublicCheckinForm({
             >
               Forget saved name
             </button>
+          </div>
+        ) : null}
+
+        {mode === "search" && selected && profileUpdateTicket ? (
+          <div className="mt-4 border-t border-cyan-200 pt-4 text-left">
+            {profileUpdateSent ? (
+              <p
+                className="rounded-xl border border-cyan-200 bg-white/75 p-3 text-sm leading-6 text-cyan-900"
+                role="status"
+              >
+                {profileUpdateMessage}
+              </p>
+            ) : showProfileUpdateForm ? (
+              <form
+                onSubmit={submitProfileUpdate}
+                className="space-y-3 rounded-2xl border border-cyan-200 bg-white/80 p-4"
+              >
+                <div>
+                  <h3 className="font-semibold text-cyan-950">
+                    Update my information
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-cyan-900/75">
+                    Enter only what needs to change. An administrator will
+                    review it before CCB is updated.
+                  </p>
+                </div>
+
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    New mobile phone
+                  </span>
+                  <input
+                    value={profileUpdateMobilePhone}
+                    onChange={(event) =>
+                      setProfileUpdateMobilePhone(event.target.value)
+                    }
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="Leave blank if unchanged"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    New email
+                  </span>
+                  <input
+                    value={profileUpdateEmail}
+                    onChange={(event) =>
+                      setProfileUpdateEmail(event.target.value)
+                    }
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Leave blank if unchanged"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    New home phone
+                  </span>
+                  <input
+                    value={profileUpdateHomePhone}
+                    onChange={(event) =>
+                      setProfileUpdateHomePhone(event.target.value)
+                    }
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="Leave blank if unchanged"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
+                  />
+                </label>
+
+                {profileUpdateMessage ? (
+                  <p
+                    className="rounded-xl bg-amber-50 p-3 text-sm leading-6 text-amber-900"
+                    role="status"
+                  >
+                    {profileUpdateMessage}
+                  </p>
+                ) : null}
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    disabled={isPending}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#0866ff] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0754d6] disabled:opacity-60"
+                  >
+                    {isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <PencilLine className="h-4 w-4" />
+                    )}
+                    Send update request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileUpdateForm(false);
+                      setProfileUpdateMessage(null);
+                    }}
+                    disabled={isPending}
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileUpdateForm(true);
+                  setProfileUpdateMessage(null);
+                }}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#8dbdff] bg-white px-4 py-3 text-sm font-semibold text-[#0754d6]"
+              >
+                <PencilLine className="h-4 w-4" />
+                Update my information
+              </button>
+            )}
           </div>
         ) : null}
       </div>
@@ -433,10 +684,9 @@ export function PublicCheckinForm({
               <span className="text-sm font-medium text-slate-700">First name</span>
               <input
                 value={firstName}
-                onChange={(event) => {
-                  setFirstName(event.target.value);
-                  setUsingSavedName(false);
-                }}
+                onChange={(event) =>
+                  changeName("first", event.target.value)
+                }
                 required
                 autoComplete="given-name"
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -447,10 +697,9 @@ export function PublicCheckinForm({
               <span className="text-sm font-medium text-slate-700">Last name</span>
               <input
                 value={lastName}
-                onChange={(event) => {
-                  setLastName(event.target.value);
-                  setUsingSavedName(false);
-                }}
+                onChange={(event) =>
+                  changeName("last", event.target.value)
+                }
                 required
                 autoComplete="family-name"
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -536,10 +785,9 @@ export function PublicCheckinForm({
             <span className="text-sm font-medium text-slate-700">First name</span>
             <input
               value={firstName}
-              onChange={(event) => {
-                setFirstName(event.target.value);
-                setUsingSavedName(false);
-              }}
+              onChange={(event) =>
+                changeName("first", event.target.value)
+              }
               required
               autoComplete="given-name"
               className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
@@ -550,56 +798,15 @@ export function PublicCheckinForm({
             <span className="text-sm font-medium text-slate-700">Last name</span>
             <input
               value={lastName}
-              onChange={(event) => {
-                setLastName(event.target.value);
-                setUsingSavedName(false);
-              }}
+              onChange={(event) =>
+                changeName("last", event.target.value)
+              }
               required
               autoComplete="family-name"
               className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
             />
           </label>
         </div>
-
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">
-            Phone or email <span className="font-normal text-slate-500">(optional)</span>
-          </span>
-          <input
-            value={phoneOrEmail}
-            onChange={(event) => setPhoneOrEmail(event.target.value)}
-            placeholder="Helps narrow down duplicate names"
-            autoComplete="email"
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-base outline-none ring-brand-500 focus:ring-2"
-          />
-        </label>
-
-        {canRememberName ? (
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#d7e2ee] bg-[#f8fbff] p-4 text-sm text-[#38536f]">
-            <input
-              type="checkbox"
-              checked={rememberOnDevice}
-              onChange={(event) => {
-                const checked = event.target.checked;
-                if (!checked && savedName) {
-                  forgetSavedName(false);
-                  return;
-                }
-                setRememberOnDevice(checked);
-              }}
-              className="mt-1 h-4 w-4 rounded border-[#a9bfd5] text-[#0866ff] focus:ring-[#0866ff]"
-            />
-            <span>
-              <strong className="block text-[#173e68]">
-                Remember my name on this personal device
-              </strong>
-              <span className="mt-0.5 block text-xs leading-5 text-[#6a7c91]">
-                Saves only your first and last name for 90 days. Do not use
-                this on a shared device.
-              </span>
-            </span>
-          </label>
-        ) : null}
 
         <button
           disabled={isPending}
@@ -640,15 +847,26 @@ export function PublicCheckinForm({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => submitCheckin(match)}
-                  disabled={isPending}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-                >
-                  <UserCheck className="h-4 w-4" />
-                  This is me
-                </button>
+                <div className="flex flex-col gap-2 sm:min-w-[190px]">
+                  <button
+                    type="button"
+                    onClick={() => submitCheckin(match)}
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                    This is me
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => submitCheckin(match, true)}
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#b9d6ff] bg-[#f3f8ff] px-4 py-2.5 text-sm font-semibold text-[#0754d6] hover:bg-[#eaf4ff] disabled:opacity-60"
+                  >
+                    <PencilLine className="h-4 w-4" />
+                    Update my information
+                  </button>
+                </div>
               </div>
             </div>
           ))}

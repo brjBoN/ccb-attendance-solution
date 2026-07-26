@@ -15,6 +15,7 @@ export type CcbWriteServiceName =
   | "create_event"
   | "create_event_attendance"
   | "create_individual"
+  | "update_individual"
   | "add_individual_to_group"
   | "create_group"
   | "update_group"
@@ -242,6 +243,13 @@ export type CreateIndividualInput = {
   campusId?: string;
   familyPosition?: "h" | "s" | "c" | "o";
   limitedAccessUser?: boolean;
+};
+
+export type UpdateIndividualInput = {
+  individualId: string;
+  email?: string;
+  mobilePhone?: string;
+  homePhone?: string;
 };
 
 export type AddIndividualToGroupInput = {

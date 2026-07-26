@@ -30,6 +30,7 @@ const icons: Record<
   classes: UsersRound,
   schedules: CalendarClock,
   guests: UserRoundPlus,
+  profile_updates: UserRoundPlus,
   checklist: ClipboardCheck,
   permissions: ShieldCheck,
   activity: ScrollText,

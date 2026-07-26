@@ -6,7 +6,7 @@ import { TeacherClassList } from "@/components/teacher-class-list";
 import { listPublicTeacherClasses } from "@/lib/teacher/classes";
 
 export const metadata: Metadata = {
-  title: "Choose Your Class"
+  title: "Choose Your Group"
 };
 
 export const dynamic = "force-dynamic";
@@ -50,10 +50,10 @@ export default async function TeacherClassesPage() {
             Teacher check-in
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] text-[#0b1f3a] sm:text-5xl">
-            Choose your class
+            Choose your group
           </h1>
           <p className="mt-3 max-w-xl text-base leading-7 text-[#5f7187]">
-            Tap a class to immediately show its check-in QR code.
+            Tap a group to immediately show its check-in QR code.
           </p>
         </div>
 
@@ -67,10 +67,10 @@ export default async function TeacherClassesPage() {
               <LockKeyhole className="h-6 w-6" />
             </div>
             <h2 className="mt-5 text-xl font-semibold text-[#132b48]">
-              No check-in classes are available
+              No check-in groups are available
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#65788d]">
-              An administrator can enable a class and set its meeting time.
+              An administrator can enable a group and set its meeting time.
             </p>
             <Link
               href="/login"

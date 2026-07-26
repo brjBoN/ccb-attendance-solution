@@ -26,6 +26,7 @@ import {
   type DeleteEventInput,
   type DeleteGroupInput,
   type InactivateGroupInput,
+  type UpdateIndividualInput,
   type UpdateGroupInput
 } from "@/lib/ccb/types";
 import {
@@ -353,6 +354,20 @@ export class CcbClient {
         family_position: input.familyPosition,
         limited_access_user:
           input.limitedAccessUser === undefined ? undefined : input.limitedAccessUser ? 1 : 0
+      }
+    });
+    return normalizeIndividuals(parsed)[0] ?? parsed;
+  }
+
+  async updateIndividual(input: UpdateIndividualInput): Promise<CcbIndividual | unknown> {
+    const parsed = await this.requestParsed({
+      service: "update_individual",
+      method: "POST",
+      queryParams: { individual_id: input.individualId },
+      params: {
+        email: input.email,
+        mobile_phone: input.mobilePhone,
+        home_phone: input.homePhone
       }
     });
     return normalizeIndividuals(parsed)[0] ?? parsed;

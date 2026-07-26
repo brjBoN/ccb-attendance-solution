@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.10.0 — Faster check-in and profile corrections
+
+- Made returning check-in automatic after a successful name selection, without
+  a remember checkbox.
+- Removed the optional phone/email field from profile search so the public form
+  stays focused on first and last name.
+- Added an attendee profile-update request flow for corrected mobile numbers,
+  home numbers, and email addresses.
+- Added protected administrator review before an approved correction is
+  applied to CCB.
+- Standardized public teacher and presentation wording on groups rather than
+  classes.
+
 ## 1.9.1 — Cleaner profile matches
 
 - Removed the internal CCB status value from public check-in search results.

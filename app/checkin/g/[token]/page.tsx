@@ -29,7 +29,7 @@ export default async function PublicCheckInPage({
           <div className="bg-[#071f3f] px-6 py-7 text-white">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#74d9f1]">
               <ScanLine className="h-4 w-4" />
-              Class check-in
+              Group check-in
             </div>
             <h1 className="mt-5 text-3xl font-semibold tracking-[-0.035em]">
               {result.groupName ?? "Check-in is not open"}
@@ -80,7 +80,7 @@ export default async function PublicCheckInPage({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-[#74d9f1]">
                 <ScanLine className="h-4 w-4" />
-                Class check-in
+                Group check-in
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e6f8fc] px-3 py-1.5 text-xs font-bold text-[#007fa9]">
                 <Radio className="h-3 w-3" />
@@ -89,7 +89,7 @@ export default async function PublicCheckInPage({
             </div>
 
             <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-white/50">
-              {session.groupName ?? "CCB class"}
+              {session.groupName ?? "CCB group"}
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
               {session.title}

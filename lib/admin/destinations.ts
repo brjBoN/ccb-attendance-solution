@@ -8,6 +8,7 @@ export type AdminDestinationKey =
   | "classes"
   | "schedules"
   | "guests"
+  | "profile_updates"
   | "checklist"
   | "permissions"
   | "activity"
@@ -37,6 +38,14 @@ export const ADMIN_DESTINATIONS: AdminDestination[] = [
     label: "Pending guests",
     shortLabel: "Guests",
     description: "Review new people and connect them with CCB profiles.",
+    access: "full_admin"
+  },
+  {
+    key: "profile_updates",
+    href: "/admin/profile-updates",
+    label: "Profile updates",
+    shortLabel: "Profile updates",
+    description: "Review phone and email corrections before updating CCB.",
     access: "full_admin"
   },
   {

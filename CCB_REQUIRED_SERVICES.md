@@ -11,6 +11,7 @@ individual_search
 individual_profile_from_id
 duplicate_individuals_list
 create_individual
+update_individual
 ```
 
 ### Groups
@@ -57,5 +58,6 @@ npm run ccb:describe -- update_group
 npm run ccb:describe -- create_event
 npm run ccb:describe -- create_event_attendance
 npm run ccb:describe -- create_individual
+npm run ccb:describe -- update_individual
 npm run ccb:describe -- add_individual_to_group
 ```

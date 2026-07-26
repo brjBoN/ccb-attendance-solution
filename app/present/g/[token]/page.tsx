@@ -7,8 +7,8 @@ import { TeacherPresentationControls } from "@/components/teacher-presentation-c
 import { getClassPresentation } from "@/lib/checkin/class-display";
 
 export const metadata: Metadata = {
-  title: "Class Check-In Display",
-  description: "Teacher presentation view for Heritage Church class check-in.",
+  title: "Group Check-In Display",
+  description: "Teacher presentation view for Heritage Church group check-in.",
   robots: "noindex, nofollow, noarchive",
   referrer: "no-referrer"
 };
@@ -50,7 +50,7 @@ export default async function ClassPresentationPage({
             />
             <span className="hidden h-8 w-px bg-white/15 sm:block" />
             <p className="hidden text-sm font-semibold tracking-wide text-white/60 sm:block">
-              Class check-in
+              Group check-in
             </p>
           </div>
           <TeacherPresentationControls
