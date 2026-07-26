@@ -33,7 +33,6 @@ type PublicMatch = {
   maskedMobilePhone: string | null;
   maskedHomePhone: string | null;
   campus: string | null;
-  status: string | null;
 };
 
 type SearchResponse = {
@@ -638,7 +637,6 @@ export function PublicCheckinForm({
                     {match.maskedMobilePhone ? <p>Mobile: {match.maskedMobilePhone}</p> : null}
                     {match.maskedHomePhone ? <p>Home: {match.maskedHomePhone}</p> : null}
                     {match.campus ? <p>Campus: {match.campus}</p> : null}
-                    {match.status ? <p>Status: {match.status}</p> : null}
                   </div>
                 </div>
 

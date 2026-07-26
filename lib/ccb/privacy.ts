@@ -10,7 +10,6 @@ export type PublicIndividualMatch = {
   maskedMobilePhone: string | null;
   maskedHomePhone: string | null;
   campus: string | null;
-  status: string | null;
 };
 
 export function toPublicIndividualMatch(person: CcbIndividual): PublicIndividualMatch {
@@ -22,7 +21,6 @@ export function toPublicIndividualMatch(person: CcbIndividual): PublicIndividual
     maskedEmail: maskEmail(person.email),
     maskedMobilePhone: maskPhone(person.mobilePhone),
     maskedHomePhone: maskPhone(person.homePhone),
-    campus: person.campus,
-    status: person.status
+    campus: person.campus
   };
 }

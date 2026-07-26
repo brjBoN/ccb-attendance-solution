@@ -48,6 +48,7 @@ describe("CCB normalizers", () => {
 
     expect(publicMatch.maskedEmail).toBe("j***@example.com");
     expect(publicMatch.maskedMobilePhone).toBe("•••-•••-2222");
+    expect(publicMatch).not.toHaveProperty("status");
   });
 
   it("normalizes group profile responses", () => {

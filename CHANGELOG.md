@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.1 — Cleaner profile matches
+
+- Removed the internal CCB status value from public check-in search results.
+
 ## 1.9.0 — Faster returning check-in
 
 - Added an optional personal-device setting that remembers only a person’s
