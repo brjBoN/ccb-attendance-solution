@@ -80,7 +80,9 @@ export async function syncAttendanceCheckin(checkinId: string): Promise<Attendan
       occurrence,
       individualIds: uniqueIds,
       didNotMeet: false,
-      headCount: Math.max(existing.headCount ?? 0, uniqueIds.length),
+      // CCB adds this value to "additional people not on the list" on every
+      // upload. Named attendees must never be included in that aggregate.
+      headCount: 0,
       topic: existing.topic ?? undefined,
       notes: existing.notes ?? undefined,
       prayerRequests: existing.prayerRequests ?? undefined,

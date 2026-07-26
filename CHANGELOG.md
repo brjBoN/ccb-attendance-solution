@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.1 — CCB headcount hotfix
+
+- Fixed CCB attendance uploads so named attendees are sent only in the attendee
+  list and never counted as additional unnamed people.
+- Changed the XML builder's safe default headcount to zero because CCB adds
+  that value again on every roster upload.
+
 ## 1.11.0 — Group and leader language
 
 - Removed saved-name clearing controls while keeping automatic per-group name

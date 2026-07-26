@@ -140,9 +140,21 @@ describe("CCB normalizers", () => {
 
     expect(xml.match(/attendee id=/g)).toHaveLength(2);
     expect(xml).toContain('<event id="1453" occurrence="2026-06-22 18:30:00">');
-    expect(xml).toContain("<head_count>2</head_count>");
+    expect(xml).toContain("<head_count>0</head_count>");
     expect(xml).toContain("Faith &amp; Community");
     expect(xml).toContain("Use &lt;main&gt; room");
+  });
+
+  it("keeps explicitly reported unnamed attendees separate from named attendees", () => {
+    const xml = buildEventAttendanceXml({
+      eventId: "1453",
+      occurrence: "2026-06-22 18:30:00",
+      individualIds: ["10", "25"],
+      headCount: 3
+    });
+
+    expect(xml.match(/attendee id=/g)).toHaveLength(2);
+    expect(xml).toContain("<head_count>3</head_count>");
   });
 
 });
