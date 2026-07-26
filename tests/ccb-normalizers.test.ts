@@ -57,6 +57,8 @@ describe("CCB normalizers", () => {
     expect(groups[0]).toMatchObject({
       id: "501",
       name: "Tuesday Small Group",
+      imageUrl:
+        "https://ccbchurch.s3.amazonaws.com/30722/pics/group/501-1024?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=example",
       groupType: "Small Group",
       groupTypeId: "21",
       campus: "Main Campus",

@@ -4,7 +4,10 @@ import { requireAdminForApi } from "@/lib/auth/api";
 import { canManageSessionForGroup } from "@/lib/auth/permissions";
 import { getServerEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { buildClassCheckinUrl } from "@/lib/tokens";
+import {
+  buildClassCheckinUrl,
+  buildClassPresentationUrl
+} from "@/lib/tokens";
 
 export async function GET(
   _request: Request,
@@ -43,9 +46,13 @@ export async function GET(
     );
   }
 
-  const checkinUrl = buildClassCheckinUrl(
-    getServerEnv().APP_BASE_URL,
-    mapping.public_checkin_slug
+  const env = getServerEnv();
+  const baseUrl = env.APP_BASE_URL;
+  const checkinUrl = buildClassCheckinUrl(baseUrl, mapping.public_checkin_slug);
+  const presentationUrl = buildClassPresentationUrl(
+    baseUrl,
+    mapping.public_checkin_slug,
+    env.SUPABASE_SERVICE_ROLE_KEY
   );
   const qrDataUrl = await QRCode.toDataURL(checkinUrl, {
     margin: 2,
@@ -59,6 +66,7 @@ export async function GET(
       className: mapping.group_name,
       publicSlug: mapping.public_checkin_slug,
       checkinUrl,
+      presentationUrl,
       qrDataUrl
     }
   });

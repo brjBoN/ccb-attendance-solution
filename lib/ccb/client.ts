@@ -212,7 +212,11 @@ export class CcbClient {
   async getGroupProfile(input: CcbGroupProfileInput): Promise<CcbGroup | null> {
     const parsed = await this.requestParsed({
       service: "group_profile_from_id",
-      params: { id: input.groupId, include_participants: false, include_image_link: false },
+      params: {
+        id: input.groupId,
+        include_participants: false,
+        include_image_link: input.includeImageLink ?? false
+      },
       timeoutMs: 45000
     });
     return normalizeGroups(parsed)[0] ?? null;

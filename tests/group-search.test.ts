@@ -6,6 +6,7 @@ function group(id: string, name: string, patch: Partial<CcbGroup> = {}): CcbGrou
   return {
     id,
     name,
+    imageUrl: null,
     description: null,
     groupType: null,
     groupTypeId: null,

@@ -103,6 +103,7 @@ export type CcbIndividualProfileInput = {
 export type CcbGroup = {
   id: string;
   name: string | null;
+  imageUrl: string | null;
   description: string | null;
   groupType: string | null;
   groupTypeId: string | null;
@@ -135,6 +136,7 @@ export type CcbGroup = {
 
 export type CcbGroupProfileInput = {
   groupId: string;
+  includeImageLink?: boolean;
 };
 
 export type CcbGroupParticipantsInput = {

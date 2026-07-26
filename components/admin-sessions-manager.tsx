@@ -19,7 +19,9 @@ import {
   Copy,
   Download,
   ExternalLink,
+  Link2,
   Loader2,
+  MonitorUp,
   Plus,
   QrCode,
   Radio,
@@ -75,6 +77,7 @@ type ClassLink = {
   className: string;
   publicSlug: string;
   checkinUrl: string;
+  presentationUrl: string;
   qrDataUrl: string;
 };
 
@@ -338,7 +341,13 @@ export function AdminSessionsManager() {
   async function copyLink() {
     if (!classLink) return;
     await navigator.clipboard.writeText(classLink.checkinUrl);
-    setMessage("Class check-in link copied.");
+    setMessage("Participant check-in link copied.");
+  }
+
+  async function copyPresentationLink() {
+    if (!classLink) return;
+    await navigator.clipboard.writeText(classLink.presentationUrl);
+    setMessage("Teacher display link copied.");
   }
 
   return (
@@ -461,7 +470,7 @@ export function AdminSessionsManager() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f1b86b] px-3 py-2.5 text-sm font-semibold text-[#2f2b1f] transition hover:bg-[#f5c681]"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy link
+                  Copy check-in
                 </button>
                 <a
                   href={classLink.qrDataUrl}
@@ -470,6 +479,23 @@ export function AdminSessionsManager() {
                 >
                   <Download className="h-4 w-4" />
                   Download
+                </a>
+                <button
+                  type="button"
+                  onClick={copyPresentationLink}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#a8decf]/35 bg-[#a8decf]/10 px-3 py-2.5 text-sm font-semibold text-[#c8f2e6] transition hover:bg-[#a8decf]/15"
+                >
+                  <Link2 className="h-4 w-4" />
+                  Copy teacher link
+                </button>
+                <a
+                  href={classLink.presentationUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <MonitorUp className="h-4 w-4" />
+                  Open display
                 </a>
                 <a
                   href={classLink.checkinUrl}

@@ -4,6 +4,7 @@
     <groups count="1">
       <group id="501">
         <name>Tuesday Small Group</name>
+        <image>https://ccbchurch.s3.amazonaws.com/30722/pics/group/501-1024?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Signature=example</image>
         <description>Example group</description>
         <group_type id="21">Small Group</group_type>
         <campus id="1">Main Campus</campus>

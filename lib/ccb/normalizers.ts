@@ -83,6 +83,7 @@ export function normalizeGroup(value: unknown): CcbGroup | null {
   return {
     id,
     name: decodeCcbText(firstText(record, ["name", "group_name", "title"])),
+    imageUrl: decodeCcbText(firstText(record, ["image", "image_link"])),
     description: firstText(record, ["description", "desc"]),
     groupType: nestedName(record, ["group_type", "type"]),
     groupTypeId: attrValue(groupType, "id"),
