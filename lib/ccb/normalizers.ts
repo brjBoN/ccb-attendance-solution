@@ -82,7 +82,7 @@ export function normalizeGroup(value: unknown): CcbGroup | null {
 
   return {
     id,
-    name: firstText(record, ["name", "group_name", "title"]),
+    name: decodeCcbText(firstText(record, ["name", "group_name", "title"])),
     description: firstText(record, ["description", "desc"]),
     groupType: nestedName(record, ["group_type", "type"]),
     groupTypeId: attrValue(groupType, "id"),
@@ -130,17 +130,40 @@ export function normalizeEvent(value: unknown): CcbEvent | null {
 
   const id = attrValue(record, "id") ?? firstText(record, ["id", "event_id"]);
   if (!id) return null;
+  const eventGrouping = firstRecord(record, ["event_grouping", "attendance_grouping"]);
 
   return {
     id,
-    name: firstText(record, ["name", "event_name", "title"]),
+    name: decodeCcbText(firstText(record, ["name", "event_name", "title"])),
     description: firstText(record, ["description", "desc"]),
     startDateTime: firstText(record, ["start_datetime", "start_date_time", "starts_at", "start"]),
     endDateTime: firstText(record, ["end_datetime", "end_date_time", "ends_at", "end"]),
     recurrence: firstText(record, ["recurrence", "recurrence_description", "schedule"]),
     groupId: attrValue(asRecord(record.group), "id") ?? firstText(record, ["group_id", "ccb_group_id"]),
+    eventGroupingId:
+      attrValue(eventGrouping, "id") ??
+      firstText(record, ["event_grouping_id", "attendance_grouping_id"]),
+    eventGroupingName: decodeCcbText(textValue(eventGrouping)),
+    timeZone: firstText(record, ["timezone", "time_zone"]),
+    listed: booleanValue(record.listed),
     raw: value
   };
+}
+
+function decodeCcbText(value: string | null) {
+  if (!value) return value;
+  return value
+    .replace(/&#(\d+);/g, (_match, code: string) =>
+      String.fromCodePoint(Number(code))
+    )
+    .replace(/&#x([0-9a-f]+);/gi, (_match, code: string) =>
+      String.fromCodePoint(Number.parseInt(code, 16))
+    )
+    .replace(/&quot;/gi, "\"")
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&amp;/gi, "&");
 }
 
 export function normalizeAttendanceProfile(parsed: unknown): CcbAttendanceProfile {

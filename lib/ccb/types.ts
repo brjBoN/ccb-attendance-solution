@@ -149,6 +149,10 @@ export type CcbEvent = {
   endDateTime: string | null;
   recurrence: string | null;
   groupId: string | null;
+  eventGroupingId: string | null;
+  eventGroupingName: string | null;
+  timeZone: string | null;
+  listed: boolean | null;
   raw?: unknown;
 };
 

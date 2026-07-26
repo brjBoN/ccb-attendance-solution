@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { Pencil, Search, Save, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Loader2, Pencil, Search, Save, Trash2, X } from "lucide-react";
 import { CCB_ATTENDANCE_GROUPING_OPTIONS } from "@/lib/ccb/group-create-options";
 
 type CcbGroupResult = {
@@ -36,6 +36,29 @@ type Draft = {
   autoAddCheckinsToGroup: boolean;
 };
 
+type ExistingGroupEvent = {
+  id: string;
+  name: string | null;
+  startDateTime: string | null;
+  endDateTime: string | null;
+  recurrence: string | null;
+  groupId: string;
+  eventGroupingId: string | null;
+  eventGroupingName: string | null;
+  timeZone: string | null;
+  listed: boolean | null;
+};
+
+type EnableReview = {
+  group: CcbGroupResult;
+  mappingId?: string;
+  events: ExistingGroupEvent[];
+  choice: "existing" | "create_later";
+  selectedEventId: string;
+  eventGroupingId: string;
+  autoAddCheckinsToGroup: boolean;
+};
+
 export function AdminGroupsManager({
   canManageGroups,
   canDeleteAppCreatedGroups
@@ -47,6 +70,8 @@ export function AdminGroupsManager({
   const [groups, setGroups] = useState<CcbGroupResult[]>([]);
   const [mappings, setMappings] = useState<GroupMapping[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [enableReview, setEnableReview] = useState<EnableReview | null>(null);
+  const [detectingGroupId, setDetectingGroupId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -110,30 +135,94 @@ export function AdminGroupsManager({
     });
   }
 
-  function saveMapping(group: CcbGroupResult) {
-    const draft = draftFor(group, mappingByGroupId.get(group.id));
+  function beginEnable(group: CcbGroupResult, mapping?: GroupMapping) {
+    const draft = draftFor(group, mapping);
 
     startTransition(async () => {
-      const response = await fetch("/api/admin/group-mappings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ccbGroupId: group.id,
-          groupName: group.name ?? `CCB Group ${group.id}`,
-          ccbEventId: draft.eventId || null,
-          ccbEventGroupingId: draft.eventGroupingId || null,
-          ccbMainLeaderId: group.mainLeaderId,
-          autoAddCheckinsToGroup: draft.autoAddCheckinsToGroup,
-          enabled: true
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setMessage(data.error ?? "Could not save mapping.");
-        return;
+      setDetectingGroupId(group.id);
+      setMessage(`Checking CCB for an existing attendance event for ${group.name ?? "this class"}...`);
+      try {
+        const response = await fetch(`/api/admin/ccb/groups/${group.id}/events`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setMessage(data.error ?? "Could not check CCB for existing attendance events.");
+          return;
+        }
+
+        const events = (data.results ?? []) as ExistingGroupEvent[];
+        const firstEvent = events[0];
+        setEnableReview({
+          group,
+          mappingId: mapping?.id,
+          events,
+          choice: firstEvent ? "existing" : "create_later",
+          selectedEventId: firstEvent?.id ?? "",
+          eventGroupingId: firstEvent?.eventGroupingId ?? draft.eventGroupingId,
+          autoAddCheckinsToGroup: draft.autoAddCheckinsToGroup
+        });
+        setMessage(
+          firstEvent
+            ? `Found ${events.length} existing CCB attendance event${events.length === 1 ? "" : "s"} for this class.`
+            : "No existing CCB attendance event was found for this class."
+        );
+      } catch {
+        setMessage("Could not reach the event detector. Nothing was changed; please try again.");
+      } finally {
+        setDetectingGroupId(null);
       }
-      setMessage(`Saved mapping for ${data.mapping.group_name}.`);
-      await loadMappings();
+    });
+  }
+
+  function saveMapping(review: EnableReview) {
+    const selectedEvent = review.events.find(
+      (event) => event.id === review.selectedEventId
+    );
+
+    startTransition(async () => {
+      try {
+        const response = await fetch(
+          review.mappingId
+            ? `/api/admin/group-mappings/${review.mappingId}`
+            : "/api/admin/group-mappings",
+          {
+          method: review.mappingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...(review.mappingId
+              ? {}
+              : {
+                  ccbGroupId: review.group.id,
+                  groupName:
+                    review.group.name ?? `CCB Group ${review.group.id}`,
+                  ccbMainLeaderId: review.group.mainLeaderId
+                }),
+            eventChoice: review.choice,
+            ccbEventId:
+              review.choice === "existing" ? selectedEvent?.id ?? null : null,
+            ccbEventGroupingId:
+              review.choice === "create_later"
+                ? review.eventGroupingId || null
+                : selectedEvent?.eventGroupingId ?? null,
+            autoAddCheckinsToGroup: review.autoAddCheckinsToGroup,
+            enabled: true
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setMessage(data.error ?? "Could not save mapping.");
+          return;
+        }
+        setEnableReview(null);
+        setMessage(
+          selectedEvent
+            ? `The existing CCB event “${selectedEvent.name ?? selectedEvent.id}” is connected. Next, save the class’s regular meeting times on the Meetings page.`
+            : `QR check-in is enabled for ${data.mapping.group_name}. Its one attendance event will be created when the class schedule is saved.`
+        );
+        await loadMappings();
+      } catch {
+        setMessage("Could not finish enabling this class. Nothing was changed; please try again.");
+      }
     });
   }
 
@@ -149,8 +238,9 @@ export function AdminGroupsManager({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ccbEventId: draft.eventId || null,
-          ccbEventGroupingId: draft.eventGroupingId || null,
+          ...(mapping.ccb_event_id
+            ? {}
+            : { ccbEventGroupingId: draft.eventGroupingId || null }),
           autoAddCheckinsToGroup: draft.autoAddCheckinsToGroup,
           ...patch
         })
@@ -227,6 +317,16 @@ ${expected}`
     });
   }
 
+  const selectedReviewEvent = enableReview?.events.find(
+    (event) => event.id === enableReview.selectedEventId
+  );
+  const canConfirmEnable = Boolean(
+    enableReview &&
+      (enableReview.choice === "existing"
+        ? selectedReviewEvent
+        : enableReview.eventGroupingId)
+  );
+
   return (
     <div className="space-y-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -266,16 +366,42 @@ ${expected}`
 
                   {canManageGroups ? (
                     <div className="w-full max-w-md space-y-3">
-                      <label className="block text-xs font-medium text-slate-600">Default CCB event ID, optional</label>
-                      <input value={draft.eventId} onChange={(event) => setDraft(group.id, { eventId: event.target.value })} placeholder="Paste CCB event ID" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2" />
+                      {existing ? (
+                        <>
+                          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                            <p className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                              <Check className="h-4 w-4" /> {
+                                !existing.enabled
+                                  ? "QR check-in disabled"
+                                  : existing.ccb_event_id
+                                    ? "QR check-in enabled"
+                                    : "QR setup needs class times"
+                              }
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-emerald-800">
+                              {existing.ccb_event_id
+                                ? `Using existing CCB attendance event ${existing.ccb_event_id}.`
+                                : "The class attendance event will be created when its schedule is saved."}
+                            </p>
+                          </div>
 
-                      <label className="block text-xs font-medium text-slate-600">Default CCB Attendance Grouping</label>
-                      <select value={draft.eventGroupingId} onChange={(event) => setDraft(group.id, { eventGroupingId: event.target.value })} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2">
-                        <option value="">Choose attendance grouping...</option>
-                        {CCB_ATTENDANCE_GROUPING_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
+                          {!existing.ccb_event_id ? (
+                            <>
+                              <label className="block text-xs font-medium text-slate-600">CCB Attendance Grouping</label>
+                              <select value={draft.eventGroupingId} onChange={(event) => setDraft(group.id, { eventGroupingId: event.target.value })} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2">
+                                <option value="">Choose attendance grouping...</option>
+                                {CCB_ATTENDANCE_GROUPING_OPTIONS.map((option) => (
+                                  <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                              </select>
+                            </>
+                          ) : null}
+                        </>
+                      ) : (
+                        <div className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm leading-6 text-brand-900">
+                          The app will check this class for an existing CCB attendance event before anything is enabled.
+                        </div>
+                      )}
 
                       <label className="flex items-start gap-2 rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
                         <input type="checkbox" checked={draft.autoAddCheckinsToGroup} onChange={(event) => setDraft(group.id, { autoAddCheckinsToGroup: event.target.checked })} className="mt-1" />
@@ -283,12 +409,37 @@ ${expected}`
                       </label>
 
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={() => saveMapping(group)} disabled={isPending} className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
-                          <Save className="h-4 w-4" /> {existing ? "Update mapping" : "Enable QR check-in"}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            existing?.ccb_event_id
+                              ? updateMapping(existing)
+                              : beginEnable(group, existing)
+                          }
+                          disabled={isPending}
+                          className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                        >
+                          {detectingGroupId === group.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          {existing?.ccb_event_id
+                            ? "Update class"
+                            : detectingGroupId === group.id
+                              ? "Checking CCB..."
+                              : existing
+                                ? "Check CCB and finish setup"
+                                : "Enable QR check-in"}
                         </button>
                         <Link href={`/admin/groups/${group.id}/edit`} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                           <Pencil className="h-4 w-4" /> Edit in CCB
                         </Link>
+                        {existing ? (
+                          <Link href="/admin/sessions" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                            <CalendarDays className="h-4 w-4" /> Set class times
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
@@ -331,19 +482,31 @@ ${expected}`
                     {canManageGroups ? (
                       <td className="px-4 py-3 text-right">
                         <div className="flex flex-col gap-2">
-                          <select value={draft.eventGroupingId} onChange={(event) => setDraft(mapping.ccb_group_id, { eventGroupingId: event.target.value })} className="rounded-lg border border-slate-300 px-2 py-1 text-xs">
-                            <option value="">Attendance grouping...</option>
-                            {CCB_ATTENDANCE_GROUPING_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </select>
+                          {!mapping.ccb_event_id ? (
+                            <select value={draft.eventGroupingId} onChange={(event) => setDraft(mapping.ccb_group_id, { eventGroupingId: event.target.value })} className="rounded-lg border border-slate-300 px-2 py-1 text-xs">
+                              <option value="">Attendance grouping...</option>
+                              {CCB_ATTENDANCE_GROUPING_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          ) : null}
                           <label className="flex items-center justify-end gap-2 text-xs text-slate-600">
                             <input type="checkbox" checked={draft.autoAddCheckinsToGroup} onChange={(event) => setDraft(mapping.ccb_group_id, { autoAddCheckinsToGroup: event.target.checked })} /> Auto-add
                           </label>
                           <div className="flex justify-end gap-2">
                             <button type="button" onClick={() => updateMapping(mapping)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Save</button>
                             <Link href={`/admin/groups/${mapping.ccb_group_id}/edit`} className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Pencil className="h-3.5 w-3.5" /></Link>
-                            <button type="button" onClick={() => updateMapping(mapping, { enabled: !mapping.enabled })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">{mapping.enabled ? "Disable" : "Enable"}</button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                !mapping.enabled && !mapping.ccb_event_id
+                                  ? beginEnable(groupResultFromMapping(mapping), mapping)
+                                  : updateMapping(mapping, { enabled: !mapping.enabled })
+                              }
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              {mapping.enabled ? "Disable" : "Enable"}
+                            </button>
                             {mapping.created_by_app && canDeleteAppCreatedGroups ? (
                               <button
                                 type="button"
@@ -376,6 +539,214 @@ ${expected}`
           </table>
         </div>
       </section>
+
+      {enableReview ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="event-review-title"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">
+                  Enable QR check-in
+                </p>
+                <h2 id="event-review-title" className="mt-2 text-2xl font-semibold text-slate-950">
+                  {enableReview.events.length
+                    ? "Use the attendance event already in CCB?"
+                    : "No existing attendance event found"}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {enableReview.group.name ?? `CCB Group ${enableReview.group.id}`}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEnableReview(null)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {enableReview.events.length ? (
+              <div className="mt-6 space-y-3">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
+                  CCB already has {enableReview.events.length === 1 ? "an attendance event" : "attendance events"} linked to this exact class. Reusing one keeps attendance together and prevents a duplicate event.
+                </div>
+
+                <label className={`block cursor-pointer rounded-2xl border p-4 transition ${
+                  enableReview.choice === "existing"
+                    ? "border-brand-500 bg-brand-50 ring-2 ring-brand-100"
+                    : "border-slate-200 hover:border-slate-300"
+                }`}>
+                  <span className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="event-choice"
+                      checked={enableReview.choice === "existing"}
+                      onChange={() => setEnableReview((current) => current ? { ...current, choice: "existing" } : current)}
+                      className="mt-1"
+                    />
+                    <span>
+                      <span className="font-semibold text-slate-950">Use an existing CCB attendance event</span>
+                      <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-800">
+                        Recommended
+                      </span>
+                    </span>
+                  </span>
+                </label>
+
+                {enableReview.choice === "existing" ? (
+                  <div className="space-y-3 pl-3 sm:pl-8">
+                    {enableReview.events.map((event) => (
+                      <label
+                        key={event.id}
+                        className={`block cursor-pointer rounded-2xl border p-4 ${
+                          enableReview.selectedEventId === event.id
+                            ? "border-brand-400 bg-white shadow-sm"
+                            : "border-slate-200 bg-slate-50"
+                        }`}
+                      >
+                        <span className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="existing-event"
+                            checked={enableReview.selectedEventId === event.id}
+                            onChange={() => setEnableReview((current) => current ? {
+                              ...current,
+                              selectedEventId: event.id,
+                              eventGroupingId: event.eventGroupingId ?? current.eventGroupingId
+                            } : current)}
+                            className="mt-1"
+                          />
+                          <span className="min-w-0">
+                            <span className="block font-semibold text-slate-950">
+                              {event.name ?? `CCB event ${event.id}`}
+                            </span>
+                            <span className="mt-1 block text-sm leading-6 text-slate-600">
+                              {event.recurrence ?? formatEventRange(event)}
+                            </span>
+                            <span className="mt-1 block text-xs text-slate-500">
+                              CCB event {event.id}
+                              {event.eventGroupingName ? ` · ${event.eventGroupingName}` : ""}
+                            </span>
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ) : null}
+
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                Nothing was changed in CCB. The app can enable the class now and create its single attendance event only after the regular class schedule is saved.
+              </div>
+            )}
+
+            {enableReview.choice === "create_later" ? (
+              <div className="mt-5">
+                <label className="block text-sm font-semibold text-slate-800">
+                  CCB Attendance Grouping
+                </label>
+                <select
+                  value={enableReview.eventGroupingId}
+                  onChange={(event) => setEnableReview((current) => current ? {
+                    ...current,
+                    eventGroupingId: event.target.value
+                  } : current)}
+                  className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none ring-brand-500 focus:ring-2"
+                >
+                  <option value="">Choose attendance grouping...</option>
+                  {CCB_ATTENDANCE_GROUPING_OPTIONS.filter((option) => option.value).map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            <label className="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 p-4 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={enableReview.autoAddCheckinsToGroup}
+                onChange={(event) => setEnableReview((current) => current ? {
+                  ...current,
+                  autoAddCheckinsToGroup: event.target.checked
+                } : current)}
+                className="mt-1"
+              />
+              <span>Add QR check-ins to this CCB group as participants</span>
+            </label>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEnableReview(null)}
+                className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => saveMapping(enableReview)}
+                disabled={isPending || !canConfirmEnable}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
+                {enableReview.choice === "existing"
+                  ? "Use existing event and enable"
+                  : "Enable class"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function formatEventRange(event: ExistingGroupEvent) {
+  const start = formatCcbDateTime(event.startDateTime);
+  const end = formatCcbDateTime(event.endDateTime);
+  if (start && end) return `${start} – ${end}`;
+  return start ?? end ?? "Schedule details are not available.";
+}
+
+function formatCcbDateTime(value: string | null) {
+  const match = value?.match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::\d{2})?/
+  );
+  if (!match) return value;
+
+  const [, year, month, day, hour, minute] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12));
+  const time = new Date(Date.UTC(2000, 0, 1, Number(hour), Number(minute)));
+  return `${new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date)} at ${new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC"
+  }).format(time)}`;
+}
+
+function groupResultFromMapping(mapping: GroupMapping): CcbGroupResult {
+  return {
+    id: mapping.ccb_group_id,
+    name: mapping.group_name,
+    description: null,
+    groupType: null,
+    campus: null,
+    leaderName: null,
+    mainLeaderId: mapping.ccb_main_leader_id,
+    matchReason: "Class name"
+  };
 }

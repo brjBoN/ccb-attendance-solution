@@ -84,7 +84,11 @@ describe("CCB normalizers", () => {
     expect(events[0]).toMatchObject({
       id: "701",
       name: "Tuesday Small Group Attendance",
-      groupId: "501"
+      groupId: "501",
+      eventGroupingId: "2",
+      eventGroupingName: "Small Groups",
+      timeZone: "America/New_York",
+      listed: false
     });
   });
 

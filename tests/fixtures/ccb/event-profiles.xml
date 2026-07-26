@@ -7,7 +7,11 @@
         <description>Weekly group event</description>
         <start_datetime>2026-05-12 18:00:00</start_datetime>
         <end_datetime>2026-05-12 20:00:00</end_datetime>
+        <recurrence>Every week on Tuesday from 6:00pm to 8:00pm</recurrence>
         <group id="501">Tuesday Small Group</group>
+        <event_grouping id="2">Small Groups</event_grouping>
+        <timezone>America/New_York</timezone>
+        <listed>false</listed>
       </event>
     </events>
   </response>

@@ -6,8 +6,12 @@ import { rankCcbGroups } from "@/lib/ccb/group-search";
 import { CcbClientError } from "@/lib/ccb/types";
 
 const listGroupsCached = unstable_cache(
-  async () => createCcbClient().listGroups(),
-  ["ccb-group-search-index-v1"],
+  async () =>
+    (await createCcbClient().listGroups()).map((group) => {
+      const { raw: _raw, ...safeGroup } = group;
+      return safeGroup;
+    }),
+  ["ccb-group-search-index-v2-sanitized"],
   { revalidate: 300 }
 );
 
