@@ -37,7 +37,7 @@ export function TeacherClassList({ classes }: { classes: TeacherClass[] }) {
             inputMode="search"
             autoComplete="off"
             placeholder="Search your classes"
-            className="h-14 w-full rounded-2xl border border-[#cfd8d2] bg-white pl-12 pr-12 text-base font-medium text-[#1c3a33] shadow-[0_10px_28px_rgba(24,45,39,0.06)] outline-none transition placeholder:font-normal placeholder:text-[#899690] focus:border-[#5b9b8f] focus:ring-4 focus:ring-[#bfe4da]/40"
+            className="teacher-class-search h-14 w-full rounded-2xl border border-[#cfd8d2] bg-white pl-12 pr-12 text-base font-medium text-[#1c3a33] shadow-[0_10px_28px_rgba(24,45,39,0.06)] outline-none transition placeholder:font-normal placeholder:text-[#899690] focus:border-[#5b9b8f] focus:ring-4 focus:ring-[#bfe4da]/40"
           />
           {query ? (
             <button
