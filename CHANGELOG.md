@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0 — Live teacher attendance roster
+
+- Added a live-updating present roster directly below each teacher QR code.
+- Merged app check-ins with the matching CCB attendance occurrence so existing
+  CCB attendance and automatically present leaders are included.
+- Limited the public display to first names and last initials, with no CCB IDs
+  or contact details.
+- Added ten-second background refresh, manual refresh, connection recovery,
+  and clear loading, closed, and empty states.
+
 ## 1.7.1 — Heritage small-groups welcome photo
 
 - Replaced the nursery welcome image with an official, playful Heritage Church

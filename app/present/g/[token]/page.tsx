@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Clock3, ScanLine } from "lucide-react";
+import { TeacherAttendanceRoster } from "@/components/teacher-attendance-roster";
 import { TeacherPresentationControls } from "@/components/teacher-presentation-controls";
 import { getClassPresentation } from "@/lib/checkin/class-display";
 
@@ -94,13 +95,13 @@ export default async function ClassPresentationPage({
             </div>
           </section>
 
-          <section className="flex flex-col items-center justify-center bg-[#f8fbff] px-5 py-5 text-center text-[#0b1f3a] sm:px-7 md:min-h-0 md:overflow-y-auto md:px-6 md:py-5 lg:px-8 lg:py-6">
+          <section className="flex flex-col items-center justify-start bg-[#f8fbff] px-5 py-5 text-center text-[#0b1f3a] sm:px-7 md:min-h-0 md:overflow-y-auto md:px-6 md:py-5 lg:px-8 lg:py-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#eaf4ff] px-3.5 py-2 text-xs font-bold uppercase tracking-[0.13em] text-[#0754d6]">
               <ScanLine className="h-4 w-4" />
               Scan to check in
             </div>
 
-            <div className="mt-3 w-full max-w-[min(82vw,390px)] rounded-[24px] border border-[#d7e2ee] bg-white p-2.5 shadow-[0_22px_55px_rgba(7,31,63,0.12)] sm:p-3 md:max-w-[min(38vw,42svh)] lg:max-w-[min(400px,44svh)]">
+            <div className="mt-3 w-full max-w-[min(82vw,390px)] rounded-[24px] border border-[#d7e2ee] bg-white p-2.5 shadow-[0_22px_55px_rgba(7,31,63,0.12)] sm:p-3 md:w-72 md:max-w-full lg:w-80 xl:w-80 2xl:w-96">
               <Image
                 src={presentation.qrDataUrl}
                 alt={`Check-in QR code for ${presentation.className}`}
@@ -111,6 +112,8 @@ export default async function ClassPresentationPage({
                 className="h-auto w-full"
               />
             </div>
+
+            <TeacherAttendanceRoster key={token} token={token} />
 
             <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] sm:text-2xl lg:text-3xl">
               Open your camera and scan

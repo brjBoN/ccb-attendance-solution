@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ensureLeaderAttendanceForSession } from "@/lib/attendance/leader-attendance";
+import { resolveCcbOccurrence } from "@/lib/attendance/occurrence";
 import { buildAttendanceRoster } from "@/lib/attendance/roster";
 import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
@@ -141,25 +142,6 @@ export async function syncAttendanceCheckin(checkinId: string): Promise<Attendan
   }
 }
 
-function resolveCcbOccurrence(session: {
-  occurrence_date: string;
-  occurrence_start_at: string | null;
-  options: unknown;
-}) {
-  const options = asObject(session.options);
-  const explicit = typeof options.ccb_occurrence === "string" ? options.ccb_occurrence : null;
-  if (explicit) return explicit;
-
-  if (session.occurrence_start_at) {
-    const date = new Date(session.occurrence_start_at);
-    if (!Number.isNaN(date.valueOf())) {
-      return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
-    }
-  }
-
-  return `${session.occurrence_date} 00:00:00`;
-}
-
 async function markFailed(checkinId: string, message: string) {
   const supabase = createSupabaseAdminClient();
   await supabase
@@ -170,14 +152,4 @@ async function markFailed(checkinId: string, message: string) {
       error_message: message
     })
     .eq("id", checkinId);
-}
-
-function asObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
-
-function pad(value: number) {
-  return String(value).padStart(2, "0");
 }

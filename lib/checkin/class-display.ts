@@ -15,6 +15,7 @@ type DisplayMappingRow = {
   ccb_group_id: string;
   group_name: string;
   public_checkin_slug: string;
+  ccb_main_leader_id: string | null;
 };
 
 type DisplayScheduleRow = {
@@ -38,7 +39,9 @@ export async function getEnabledClassDisplayMapping(
 
   const { data, error } = await createSupabaseAdminClient()
     .from("ccb_group_mappings")
-    .select("id,ccb_group_id,group_name,public_checkin_slug")
+    .select(
+      "id,ccb_group_id,group_name,public_checkin_slug,ccb_main_leader_id"
+    )
     .eq("public_checkin_slug", slug)
     .eq("enabled", true)
     .is("deleted_at", null)
