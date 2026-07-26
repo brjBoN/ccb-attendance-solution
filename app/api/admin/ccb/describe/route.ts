@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminForApi } from "@/lib/auth/api";
+import { requireFullAdminForApi } from "@/lib/auth/api";
 import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminForApi();
+  const { response } = await requireFullAdminForApi();
   if (response) return response;
 
   const service = request.nextUrl.searchParams.get("service");

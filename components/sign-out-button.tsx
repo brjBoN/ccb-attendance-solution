@@ -1,8 +1,15 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase/client";
 
-export function SignOutButton() {
+export function SignOutButton({
+  dark = false,
+  compact = false
+}: {
+  dark?: boolean;
+  compact?: boolean;
+}) {
   async function signOut() {
     const supabase = createBrowserClient();
     await supabase.auth.signOut();
@@ -12,9 +19,15 @@ export function SignOutButton() {
   return (
     <button
       onClick={signOut}
-      className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+      aria-label="Sign out"
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition ${
+        dark
+          ? "border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] hover:text-white"
+          : "border-[#cfd7d1] bg-white text-[#4c625b] shadow-sm hover:bg-[#f8faf8]"
+      }`}
     >
-      Sign out
+      <LogOut className="h-4 w-4" />
+      <span className={compact ? "sr-only" : "hidden sm:inline"}>Sign out</span>
     </button>
   );
 }

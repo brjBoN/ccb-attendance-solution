@@ -2,19 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus, UsersRound } from "lucide-react";
 import { AdminGroupsManager } from "@/components/admin-groups-manager";
-import { requireAdmin } from "@/lib/auth/admin";
-import {
-  canCreateGroupsRole,
-  isFullAdminRole
-} from "@/lib/auth/permissions";
+import { requireGroupCreator } from "@/lib/auth/admin";
+import { isFullAdminRole } from "@/lib/auth/permissions";
 
 export const metadata: Metadata = {
   title: "Classes"
 };
 
 export default async function AdminGroupsPage() {
-  const admin = await requireAdmin();
-  const canManageGroups = canCreateGroupsRole(admin.role);
+  const admin = await requireGroupCreator();
+  const canManageGroups = true;
   const canDeleteAppCreatedGroups = isFullAdminRole(admin.role);
 
   return (

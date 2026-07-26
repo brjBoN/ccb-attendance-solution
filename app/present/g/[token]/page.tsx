@@ -13,11 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ClassPresentationPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
-  const { token } = await params;
+  const [{ token }, query] = await Promise.all([params, searchParams]);
   const presentation = await getClassPresentation(token);
   if (!presentation) notFound();
 
@@ -50,7 +52,9 @@ export default async function ClassPresentationPage({
               Class check-in
             </p>
           </div>
-          <TeacherPresentationControls />
+          <TeacherPresentationControls
+            backHref={query.from === "teacher" ? "/teacher" : undefined}
+          />
         </header>
 
         <article className="grid overflow-hidden rounded-[30px] border border-white/10 bg-white shadow-[0_36px_100px_rgba(0,0,0,0.28)] sm:rounded-[38px] md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] lg:grid-cols-[minmax(0,1.12fr)_minmax(420px,0.88fr)]">

@@ -1,5 +1,6 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { safeAuthRedirectPath } from "@/lib/auth/redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const allowedTypes = new Set([
@@ -15,7 +16,10 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type");
-  const next = requestUrl.searchParams.get("next") ?? "/admin";
+  const next = safeAuthRedirectPath(
+    requestUrl.searchParams.get("next"),
+    type === "recovery" ? "/reset-password" : "/admin"
+  );
 
   if (!tokenHash || !type || !allowedTypes.has(type)) {
     return NextResponse.redirect(

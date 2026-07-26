@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForApi, requireGroupCreatorForApi } from "@/lib/auth/api";
-import { isFullAdminRole } from "@/lib/auth/permissions";
+import {
+  canCreateGroupsRole,
+  isFullAdminRole
+} from "@/lib/auth/permissions";
 import {
   findExistingGroupEvents,
   GroupEventDetectionUnavailableError,
@@ -50,7 +53,11 @@ export async function GET(request: NextRequest) {
   const supabase = createSupabaseAdminClient();
   let query = supabase.from("ccb_group_mappings").select("*").is("deleted_at", null).order("group_name", { ascending: true });
 
-  if (request.nextUrl.searchParams.get("scope") === "session" && !isFullAdminRole(admin.role)) {
+  const sessionScope = request.nextUrl.searchParams.get("scope") === "session";
+  if (
+    !isFullAdminRole(admin.role) &&
+    (sessionScope || !canCreateGroupsRole(admin.role))
+  ) {
     if (!admin.ccbIndividualId) return NextResponse.json({ results: [] });
     query = query.eq("ccb_main_leader_id", admin.ccbIndividualId);
   }

@@ -1,7 +1,9 @@
 import { CcbAdminTools } from "@/components/ccb-admin-tools";
+import { requireFullAdmin } from "@/lib/auth/admin";
 import { getServerEnv } from "@/lib/env";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  await requireFullAdmin();
   const env = getServerEnv();
   const rows = [
     ["CCB API URL", env.CCB_API_URL],

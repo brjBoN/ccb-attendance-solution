@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
+import { getCurrentAdmin } from "@/lib/auth/admin";
+import { safeAuthRedirectPath } from "@/lib/auth/redirect";
 
 export const metadata: Metadata = {
-  title: "Leader Sign In"
+  title: "Admin Sign In"
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams
+}: {
+  searchParams: Promise<{ next?: string; error?: string }>;
+}) {
+  const [admin, query] = await Promise.all([getCurrentAdmin(), searchParams]);
+  const next = safeAuthRedirectPath(query.next);
+  if (admin) redirect(next);
+
   return (
     <main className="grid min-h-screen bg-[#f3f2ec] lg:grid-cols-[0.9fr_1.1fr]">
       <section className="relative hidden overflow-hidden bg-[#12362f] p-12 text-white lg:flex lg:flex-col lg:justify-between">
@@ -26,24 +38,24 @@ export default function LoginPage() {
 
         <div className="relative max-w-lg">
           <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#a8decf]">
-            Heritage Church attendance
+            Heritage Church admin
           </p>
           <h1 className="mt-4 text-5xl font-semibold leading-[1.02] tracking-[-0.045em]">
             Make every welcome count.
           </h1>
           <p className="mt-5 text-lg leading-8 text-white/65">
-            Give class leaders a clear weekly rhythm for attendance and keep
-            CCB up to date with less setup.
+            Manage class schedules, pending guests, permissions, and CCB
+            attendance from one place.
           </p>
           <div className="mt-8 space-y-3 text-sm text-white/75">
-            <Benefit>Automatic schedule-based check-in</Benefit>
-            <Benefit>Fast member and guest arrival</Benefit>
-            <Benefit>Protected CCB attendance sync</Benefit>
+            <Benefit>Set regular and special class times</Benefit>
+            <Benefit>Review pending guest submissions</Benefit>
+            <Benefit>Monitor protected CCB attendance sync</Benefit>
           </div>
         </div>
 
         <p className="relative text-xs text-white/35">
-          Built for Heritage Church class leaders and attendance teams.
+          Protected access for Heritage Church attendance administrators.
         </p>
       </section>
 
@@ -59,7 +71,13 @@ export default function LoginPage() {
               className="h-auto w-full max-w-[220px] mix-blend-screen"
             />
           </div>
-          <AuthForm />
+          <AuthForm next={next} initialMessage={query.error ?? null} />
+          <Link
+            href="/teacher"
+            className="mt-5 flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold text-[#167365] transition hover:bg-white/55"
+          >
+            Teacher check-in does not need a login
+          </Link>
         </div>
       </section>
     </main>

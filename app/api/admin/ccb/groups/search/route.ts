@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
-import { requireAdminForApi } from "@/lib/auth/api";
+import { requireGroupCreatorForApi } from "@/lib/auth/api";
 import { createCcbClient } from "@/lib/ccb/client";
 import { rankCcbGroups } from "@/lib/ccb/group-search";
 import { CcbClientError } from "@/lib/ccb/types";
@@ -16,7 +16,7 @@ const listGroupsCached = unstable_cache(
 );
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireAdminForApi();
+  const { response } = await requireGroupCreatorForApi();
   if (response) return response;
 
   const query = request.nextUrl.searchParams.get("q")?.trim().toLowerCase() ?? "";

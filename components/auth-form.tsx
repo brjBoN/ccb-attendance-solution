@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import { FormEvent, useState, useTransition } from "react";
+import { safeAuthRedirectPath } from "@/lib/auth/redirect";
 import { createBrowserClient } from "@/lib/supabase/client";
 
-export function AuthForm() {
+export function AuthForm({
+  next,
+  initialMessage = null
+}: {
+  next?: string | null;
+  initialMessage?: string | null;
+}) {
   const supabase = createBrowserClient();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(initialMessage);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -37,12 +44,12 @@ export function AuthForm() {
 
       if (mode === "signup") {
         setMessage(
-          "Account created. If email confirmation is enabled, confirm your email before signing in. Then seed yourself into admin_users."
+          "Account created. Check your email if confirmation is required, then ask an administrator to connect your account."
         );
         return;
       }
 
-      window.location.href = "/admin";
+      window.location.href = safeAuthRedirectPath(next);
     });
   }
 
@@ -50,15 +57,15 @@ export function AuthForm() {
     <div className="w-full rounded-[28px] border border-[#d9ddd7] bg-white p-6 shadow-[0_24px_70px_rgba(24,45,39,0.1)] sm:p-8">
       <div className="mb-7">
         <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#167365]">
-          Leader access
+          Admin access
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] text-[#18332d]">
           {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-[#6d7b76]">
           {mode === "signin"
-            ? "Sign in to open meetings and manage class attendance."
-            : "Create a sign-in, then ask an administrator to grant your class access."}
+            ? "Sign in to change class times, review guests, and manage attendance."
+            : "Create a sign-in, then ask an administrator to grant access."}
         </p>
       </div>
 
@@ -113,8 +120,8 @@ export function AuthForm() {
           className="text-left font-semibold text-[#167365] hover:underline"
         >
           {mode === "signin"
-            ? "Need to create the first Auth user?"
-            : "Already created the Auth user? Sign in"}
+            ? "Need an account? Create one"
+            : "Already have an account? Sign in"}
         </button>
       </div>
     </div>

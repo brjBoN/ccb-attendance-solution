@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdminForApi } from "@/lib/auth/api";
+import { requireGroupCreatorForApi } from "@/lib/auth/api";
 import { createCcbClient } from "@/lib/ccb/client";
 import { toPublicIndividualMatch } from "@/lib/ccb/privacy";
 import { CcbClientError } from "@/lib/ccb/types";
@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const { response } = await requireAdminForApi();
+  const { response } = await requireGroupCreatorForApi();
   if (response) return response;
 
   const body = await request.json().catch(() => null);

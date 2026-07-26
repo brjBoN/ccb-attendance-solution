@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdminForApi, requireGroupCreatorForApi } from "@/lib/auth/api";
+import { requireGroupCreatorForApi } from "@/lib/auth/api";
 import { createCcbClient } from "@/lib/ccb/client";
 import { CcbClientError } from "@/lib/ccb/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -39,7 +39,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
-  const { response } = await requireAdminForApi();
+  const { response } = await requireGroupCreatorForApi();
   if (response) return response;
 
   const { groupId } = await params;

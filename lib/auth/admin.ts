@@ -58,7 +58,7 @@ export async function requireFullAdmin() {
 
 export async function requireGroupCreator() {
   const admin = await requireAdmin();
-  if (!canCreateGroupsRole(admin.role)) redirect("/admin/groups");
+  if (!canCreateGroupsRole(admin.role)) redirect("/admin");
   return admin;
 }
 
