@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.10.1 — Eastern-time check-in display
+
+- Fixed the public group check-in page so Vercel displays meeting dates and
+  times in Heritage Church's Eastern time zone.
+
 ## 1.10.0 — Faster check-in and profile corrections
 
 - Made returning check-in automatic after a successful name selection, without

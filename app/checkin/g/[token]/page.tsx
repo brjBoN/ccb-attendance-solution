@@ -7,6 +7,7 @@ import {
   ScanLine,
   ShieldCheck
 } from "lucide-react";
+import { DEFAULT_CLASS_TIME_ZONE } from "@/lib/attendance/class-event";
 import { getPublicCheckinSessionByToken } from "@/lib/checkin/public-session";
 import { PublicCheckinForm } from "@/components/public-checkin-form";
 
@@ -59,12 +60,14 @@ export default async function PublicCheckInPage({
   const dateLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
-    day: "numeric"
+    day: "numeric",
+    timeZone: DEFAULT_CLASS_TIME_ZONE
   }).format(meetingDate);
   const timeLabel = session.occurrenceStartAt
     ? new Intl.DateTimeFormat("en-US", {
         hour: "numeric",
-        minute: "2-digit"
+        minute: "2-digit",
+        timeZone: DEFAULT_CLASS_TIME_ZONE
       }).format(meetingDate)
     : null;
 
